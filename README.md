@@ -20,7 +20,7 @@ claude/         Claude Code config: CLAUDE.md, MCP, settings, hooks, skills
 copilot/        GitHub Copilot instructions and agent profiles
 gemini/         Gemini CLI config and global instructions
 memory/         CORE.md — durable learnings promoted by pi-self-learning
-tools/          setup.sh (bootstrap) and sync.sh (pull + relink)
+tools/          setup.sh (bootstrap), sync.sh (pull + relink), install-tools.sh (CLI tools)
 dotfiles/       .zshrc.ai — AI aliases, sourced automatically by setup.sh
 ```
 

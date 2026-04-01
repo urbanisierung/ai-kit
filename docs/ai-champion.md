@@ -59,6 +59,7 @@ ai-kit/
   tools/
     setup.sh
     sync.sh
+    install-tools.sh
   dotfiles/
     .zshrc.ai
 ```
@@ -948,6 +949,50 @@ Persistent memory + self-reflection in a more structured form.
 [github.com/marciopuga/cog](https://github.com/marciopuga/cog) — medium complexity, worth
 reading the architecture even if you don't deploy it.
 
+### Sandbox containment: jai
+
+[jai.scs.stanford.edu](https://jai.scs.stanford.edu/) — Stanford SCS lightweight Linux sandbox
+for AI agents. One-command containment with no Docker, no images, no configuration overhead.
+Developed in response to real data-loss incidents from unintended `rm -rf` and destructive
+operations in Claude Code, Cursor, and similar tools.
+
+**How it works:** Wraps the agent process with a copy-on-write filesystem overlay. Changes are
+isolated from your real home directory — you can see what would have changed, then discard or
+apply. Three modes:
+
+| Mode | What it does | Use it for |
+|---|---|---|
+| `casual` | Copy-on-write overlay, runs as your user | Day-to-day experimentation |
+| `bare` | Hidden home directory, medium protection | Testing new hooks/skills |
+| `strict` | Separate UID isolation | Running untrusted agent workflows |
+
+**Install (Linux):**
+```bash
+# Arch (AUR)
+yay -S jai
+
+# From source
+git clone https://github.com/stanford-scs/jai.git
+cd jai && ./autogen.sh && ./configure && make && sudo make install
+sudo systemd-sysusers
+jai --init
+```
+
+**Usage:**
+```bash
+jai claude                   # run Claude Code inside the sandbox
+jai --mode strict claude     # stronger isolation
+jai --mode casual bash       # drop into a sandboxed shell
+```
+
+**When to use it:**
+- Before running a new skill or hook for the first time
+- When testing any agent that writes files or runs shell commands
+- Before delegating a long autonomous task where you can't watch every step
+
+> Pairs naturally with the Level 6 harness pattern: the hook gives the agent backpressure,
+> jai contains the blast radius if it still goes wrong.
+
 **Sources:**
 - [Your Coding Agent Keeps Making the Same Mistakes](https://adventures.nodeland.dev/archive/your-coding-agent-keeps-making-the-same-mistakes/) — Matteo Collina (weeklyfoo #128)
 - [Rudel](https://github.com/obsessiondb/rudel) (weeklyfoo #128)
@@ -1381,6 +1426,7 @@ ai-kit/
 ### Medium (1–3 hours)
 | Tool | What it does | Link |
 |---|---|---|
+| **jai** (Linux) | Lightweight sandbox for AI agents — copy-on-write containment, no Docker | [jai.scs.stanford.edu](https://jai.scs.stanford.edu/) |
 | **pi-self-learning** | Git-backed persistent memory across sessions | `pi install npm:pi-self-learning` |
 | **mem0 MCP** | Vector+graph memory layer, cloud or self-hosted | [mem0.ai](https://mem0.ai) |
 | **Agent-Reach** ⭐14K | Give your agent access to Twitter, Reddit, YouTube, GitHub, Bilibili — zero API fees | [github.com/Panniantong/Agent-Reach](https://github.com/Panniantong/Agent-Reach) |
@@ -1467,8 +1513,9 @@ gh repo create urbanisierung/ai-kit --private --push
 Copy the starter file contents from the STEP 0 section above into each file.
 Then run:
 ```bash
-chmod +x tools/setup.sh tools/sync.sh
-bash tools/setup.sh
+chmod +x tools/setup.sh tools/sync.sh tools/install-tools.sh
+bash tools/setup.sh          # links configs, writes MCP + settings from templates
+bash tools/install-tools.sh  # interactive: installs CLI tools (RTK, rudel, ecc, jai, ...)
 ```
 
 **What you'll notice:** Every skill, hook, and CLAUDE.md change you make for the rest
