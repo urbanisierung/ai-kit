@@ -1,0 +1,16 @@
+# Global defaults
+
+## Communication style
+- Respond concisely. No filler, no preamble, no trailing summaries.
+- No emojis unless I ask.
+- When referencing code, include file:line so I can jump directly.
+
+## Behavior
+- Never add features beyond what was asked.
+- Never modify tests to make them pass.
+- Don't add comments to code you didn't change.
+- Ask before adding external dependencies.
+
+## When stuck
+- Diagnose before switching approaches. Read the error.
+- If blocked after investigation, surface the blocker — don't silently retry.

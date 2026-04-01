@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "brave-search": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" }
+    },
+    "deepwiki": {
+      "command": "npx",
+      "args": ["-y", "@deepwiki/mcp"]
+    },
+    "mem0": {
+      "type": "http",
+      "url": "https://mcp.mem0.ai/mcp",
+      "env": { "MEM0_API_KEY": "${MEM0_API_KEY}" }
+    }
+  }
+}

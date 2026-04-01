@@ -1,0 +1,9 @@
+{
+  "model": "claude-sonnet-4-6",
+  "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": false,
+  "hooks": {
+    "PostToolUse": [
+      { "command": "bash ${AI_KIT_REPO}/claude/hooks/post-tool-use.sh" }
+    ]
+  }
+}

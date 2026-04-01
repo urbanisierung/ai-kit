@@ -1,0 +1,21 @@
+# AI aliases — sourced from ~/.zshrc via tools/setup.sh
+
+# ── Configure once ────────────────────────────────────────────────────────────
+# Override by setting AI_KIT_REPO in your environment before sourcing this file,
+# or by adding it to ~/github.com/urbanisierung/ai-kit/.env
+export AI_KIT_REPO="${AI_KIT_REPO:-$HOME/github.com/urbanisierung/ai-kit}"
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Quick Claude Code session in current dir
+alias cc="claude"
+alias cca="claude --auto-mode"
+
+# Sync ai-kit from any machine
+alias ai-sync="bash $AI_KIT_REPO/tools/sync.sh"
+
+# RTK shortcuts
+alias rg="rtk grep"   # replace ripgrep with token-optimized version in AI sessions
+                       # remove this if you use rg outside of AI contexts
+
+# Load keys for current shell session (never in .zshrc directly)
+alias ai-env="set -a && source $AI_KIT_REPO/.env && set +a && echo 'AI env loaded'"
