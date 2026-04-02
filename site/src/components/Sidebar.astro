@@ -1,0 +1,49 @@
+---
+interface Level {
+  id: string;
+  number: string;
+  title: string;
+  sections: { items: unknown[] }[];
+}
+interface Props { levels: Level[] }
+const { levels } = Astro.props;
+
+const mainLevels = levels.filter(l => !('type' in l) || (l as any).type !== 'appendix');
+const appendixLevels = levels.filter(l => ('type' in l) && (l as any).type === 'appendix');
+---
+<nav class="sidebar" aria-label="Roadmap navigation">
+  <p class="sidebar-section-label">Levels</p>
+  <ul class="sidebar-nav">
+    {mainLevels.map(level => {
+      const total = level.sections.flatMap(s => s.items).length;
+      return (
+        <li class="sidebar-nav-item" data-level-id={level.id}>
+          <a href={`#${level.id}`} class="sidebar-nav-link" aria-current="false">
+            <span class="sidebar-nav-num">{level.number}</span>
+            <span class="sidebar-nav-title">{level.title}</span>
+            <span class="sidebar-nav-count" aria-label={`0 of ${total} done`}>0/{total}</span>
+          </a>
+        </li>
+      );
+    })}
+  </ul>
+
+  {appendixLevels.length > 0 && (
+    <>
+      <p class="sidebar-section-label">Reference</p>
+      <ul class="sidebar-nav">
+        {appendixLevels.map(level => {
+          const total = level.sections.flatMap(s => s.items).length;
+          return (
+            <li class="sidebar-nav-item" data-level-id={level.id}>
+              <a href={`#${level.id}`} class="sidebar-nav-link" aria-current="false">
+                <span class="sidebar-nav-title">{level.title}</span>
+                <span class="sidebar-nav-count">0/{total}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </>
+  )}
+</nav>

@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Champion Roadmap",
+  "type": "object",
+  "required": ["meta", "tools", "levels"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["title", "description", "version"],
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["label"],
+        "properties": {
+          "label": { "type": "string" },
+          "color": { "type": "string" }
+        }
+      }
+    },
+    "levels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "number", "title", "goal", "sections"],
+        "properties": {
+          "id": { "type": "string" },
+          "number": { "type": "string" },
+          "title": { "type": "string" },
+          "goal": { "type": "string" },
+          "type": { "type": "string", "enum": ["level", "appendix"] },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "items"],
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": ["string", "null"] },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "text", "tools"],
+                    "properties": {
+                      "id": { "type": "string" },
+                      "text": { "type": "string" },
+                      "label": { "type": "string" },
+                      "detail": { "type": ["string", "null"] },
+                      "code": {
+                        "oneOf": [
+                          { "type": "null" },
+                          {
+                            "type": "object",
+                            "required": ["lang", "content"],
+                            "properties": {
+                              "lang": { "type": "string" },
+                              "content": { "type": "string" }
+                            }
+                          }
+                        ]
+                      },
+                      "links": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["label", "url"],
+                          "properties": {
+                            "label": { "type": "string" },
+                            "url": { "type": "string" }
+                          }
+                        }
+                      },
+                      "tools": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                      },
+                      "optional": { "type": "boolean" },
+                      "note": { "type": ["string", "null"] },
+                      "why": { "type": ["string", "null"] }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,110 @@
+---
+interface Props {
+  total: number;
+  tools: Record<string, { label: string }>;
+}
+const { total, tools } = Astro.props;
+---
+<header class="site-header">
+  <a href="/" class="header-logo">
+    <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 2L20 12L30 16L20 20L16 30L12 20L2 16L12 12Z" fill="#D97706"/>
+    </svg>
+    <span>AI Champion Roadmap</span>
+  </a>
+
+  <a href="/cheatsheet" class="header-cheatsheet-link">Cheatsheet</a>
+
+  <div class="header-right">
+    <fieldset class="tool-filter" role="group" aria-label="Filter by tool">
+      <legend class="sr-only">Show content for</legend>
+      <label class="tool-chip tool-chip--claude">
+        <input type="checkbox" name="tool" value="claude" checked />
+        <span class="tool-chip__dot"></span>
+        Claude
+      </label>
+      <label class="tool-chip tool-chip--gemini">
+        <input type="checkbox" name="tool" value="gemini" checked />
+        <span class="tool-chip__dot"></span>
+        Gemini
+      </label>
+      <label class="tool-chip tool-chip--copilot">
+        <input type="checkbox" name="tool" value="copilot" checked />
+        <span class="tool-chip__dot"></span>
+        Copilot
+      </label>
+    </fieldset>
+
+    <output id="progress-counter" class="progress-counter" aria-live="polite" aria-label="Progress">
+      0 / {total}
+    </output>
+
+    <button id="export-btn" class="icon-btn" title="Export progress" aria-label="Export progress to JSON file">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </button>
+
+    <label class="icon-btn" title="Import progress" aria-label="Import progress from JSON file" style="cursor:pointer">
+      <input type="file" id="import-input" accept=".json" style="display:none" />
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+    </label>
+
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+
+    <button id="reset-btn" class="reset-btn" aria-label="Reset all progress">Reset</button>
+
+    <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open navigation">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<style>
+.header-cheatsheet-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  padding: 3px 8px;
+  border-radius: 4px;
+  transition: color 0.1s, background 0.1s;
+  white-space: nowrap;
+}
+.header-cheatsheet-link:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-sunken);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+</style>
