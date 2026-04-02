@@ -1,2 +1,6 @@
 .env
 *.local
+site/dist/
+site/.astro/
+site/node_modules/
+data/*.local.json

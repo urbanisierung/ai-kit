@@ -1,0 +1,477 @@
+---
+import roadmap from '../../../data/roadmap.json';
+
+interface CodeItem {
+  id: string;
+  label?: string;
+  text: string;
+  tools: string[];
+  code: { lang: string; content: string };
+}
+
+interface LevelData {
+  id: string;
+  number: string;
+  title: string;
+  items: CodeItem[];
+  color: string;
+  headerBg: string;
+  rowBg: string;
+  border: string;
+}
+
+const levelColors: Record<string, { color: string; headerBg: string; rowBg: string; border: string }> = {
+  'level-0': { color: '#fff', headerBg: '#334155', rowBg: '#181C20', border: '#2D3748' },
+  'level-1': { color: '#fff', headerBg: '#1D4ED8', rowBg: '#0D1425', border: '#1E3A6E' },
+  'level-2': { color: '#fff', headerBg: '#047857', rowBg: '#091812', border: '#14472A' },
+  'level-3': { color: '#fff', headerBg: '#6D28D9', rowBg: '#110D22', border: '#2E1A5C' },
+  'level-4': { color: '#fff', headerBg: '#0E7490', rowBg: '#07151C', border: '#0E3D4F' },
+  'level-5': { color: '#fff', headerBg: '#B45309', rowBg: '#1A1106', border: '#4A2E07' },
+  'level-6': { color: '#fff', headerBg: '#C2410C', rowBg: '#1C0E06', border: '#5C2208' },
+  'level-7': { color: '#fff', headerBg: '#9D174D', rowBg: '#1A0812', border: '#5C1633' },
+  'level-8': { color: '#fff', headerBg: '#9F1239', rowBg: '#1A0709', border: '#5C1020' },
+  'level-9': { color: '#fff', headerBg: '#5B21B6', rowBg: '#100C20', border: '#2D1A5C' },
+  'appendix-antipatterns': { color: '#fff', headerBg: '#374151', rowBg: '#14161A', border: '#2D3140' },
+};
+
+const levels: LevelData[] = roadmap.levels.map(l => {
+  const colors = levelColors[l.id] ?? levelColors['appendix-antipatterns'];
+  const items: CodeItem[] = [];
+  for (const s of l.sections) {
+    for (const item of s.items) {
+      if ((item as any).code) {
+        items.push(item as any as CodeItem);
+      }
+    }
+  }
+  return { id: l.id, number: l.number, title: l.title, items, ...colors };
+}).filter(l => l.items.length > 0);
+
+const toolMeta: Record<string, { label: string }> = {
+  claude:  { label: 'Claude' },
+  gemini:  { label: 'Gemini' },
+  copilot: { label: 'Copilot' },
+};
+
+function toolLabel(tools: string[]): string {
+  if (!tools || tools.includes('all') || tools.length === 0) return '';
+  return tools.map(t => toolMeta[t]?.label ?? t).join('+');
+}
+
+function firstLines(content: string, n = 4): { preview: string; full: string; clipped: boolean } {
+  const lines = content.split('\n');
+  const preview = lines.slice(0, n).join('\n');
+  return { preview, full: content, clipped: lines.length > n };
+}
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Champion — Command Cheatsheet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --font-sans: 'Inter', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --bg: #0E0D0C;
+      --surface: #161412;
+      --text: #E7E3DE;
+      --muted: #78716C;
+      --border: #2A2826;
+    }
+
+    [data-theme="dark"] {
+      --bg: #080807;
+      --surface: #111010;
+      --text: #F5F4F2;
+      --muted: #635F5B;
+      --border: #201E1C;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    /* ── Bar ── */
+    .bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 14px;
+      flex-wrap: wrap;
+    }
+
+    .bar__back {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #D97706;
+      text-decoration: none;
+    }
+    .bar__back:hover { text-decoration: underline; }
+
+    .bar__title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-right: auto;
+    }
+
+    .bar__filters {
+      display: flex;
+      gap: 5px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 100px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      color: var(--muted);
+      transition: all 0.12s;
+    }
+    .chip input { display: none; }
+    .chip__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); transition: background 0.12s; }
+
+    .chip--claude:has(input:checked)  { background: #EDE9FE; border-color: #7C3AED; color: #5B21B6; }
+    .chip--claude:has(input:checked) .chip__dot { background: #7C3AED; }
+    .chip--gemini:has(input:checked)  { background: #E0F2FE; border-color: #0369A1; color: #0369A1; }
+    .chip--gemini:has(input:checked) .chip__dot { background: #0369A1; }
+    .chip--copilot:has(input:checked) { background: #DCFCE7; border-color: #15803D; color: #15803D; }
+    .chip--copilot:has(input:checked) .chip__dot { background: #15803D; }
+
+    .bar__actions { display: flex; gap: 6px; }
+
+    .btn {
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: background 0.1s;
+    }
+    .btn:hover { background: var(--border); }
+    .btn--print {
+      background: #1C1917;
+      color: #FAF9F7;
+      border-color: #1C1917;
+    }
+    .btn--print:hover { background: #292524; border-color: #292524; }
+
+    /* ── Masonry grid ── */
+    .grid {
+      padding: 14px;
+      columns: 3;
+      column-gap: 10px;
+    }
+
+    @media (max-width: 1100px) { .grid { columns: 2; } }
+    @media (max-width: 680px)  { .grid { columns: 1; } }
+
+    /* ── Section block ── */
+    .section {
+      break-inside: avoid;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+      border: 1px solid;
+    }
+
+    .section[data-hidden="true"] { display: none; }
+
+    .section__head {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      padding: 5px 9px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .section__num {
+      font-size: 9px;
+      font-weight: 700;
+      opacity: 0.75;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Rows ── */
+    .section__rows {
+      list-style: none;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid;
+    }
+
+    .row[data-hidden="true"] { display: none; }
+
+    .row__meta {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      padding: 4px 9px 2px;
+    }
+
+    .row__label {
+      font-size: 11px;
+      font-weight: 500;
+      flex: 1;
+      line-height: 1.3;
+      color: #C8C3BC;
+    }
+
+    .row__tool {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      opacity: 0.45;
+      white-space: nowrap;
+      color: #E7E3DE;
+    }
+
+    .row__code-wrap {
+      position: relative;
+    }
+
+    .row__code-wrap pre {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      line-height: 1.5;
+      padding: 3px 9px 6px;
+      white-space: pre;
+      overflow-x: auto;
+      background: transparent;
+      tab-size: 2;
+      color: #E7E3DE;
+    }
+
+    .row__expand {
+      display: none;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      padding: 0 9px 5px;
+      cursor: pointer;
+      color: #A8A29E;
+      background: none;
+      border: none;
+      text-align: left;
+    }
+    .row__expand:hover { color: #E7E3DE; }
+    .row--clipped .row__expand { display: block; }
+
+    .row__copy {
+      display: none;
+      position: absolute;
+      top: 4px;
+      right: 7px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      color: #C8C3BC;
+      font-size: 9px;
+      font-family: var(--font-sans);
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .row:hover .row__copy { display: block; }
+    .row__copy:hover { background: rgba(0,0,0,0.7); color: #fff; }
+
+    /* ── Empty ── */
+    .empty {
+      display: none;
+      padding: 40px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* ── Print ── */
+    @media print {
+      .bar { display: none; }
+      body { background: #0E0D0C; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .grid { columns: 3; padding: 6mm; column-gap: 4mm; }
+      .section { margin-bottom: 4mm; }
+      .row__copy, .row__expand { display: none !important; }
+      .section[data-hidden="true"] { display: none; }
+      .row[data-hidden="true"] { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bar">
+  <a href="/roadmap" class="bar__back">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Roadmap
+  </a>
+  <span class="bar__title">Command Cheatsheet</span>
+
+  <div class="bar__filters">
+    <label class="chip chip--claude">
+      <input type="checkbox" name="tool" value="claude" checked />
+      <span class="chip__dot"></span>Claude
+    </label>
+    <label class="chip chip--gemini">
+      <input type="checkbox" name="tool" value="gemini" checked />
+      <span class="chip__dot"></span>Gemini
+    </label>
+    <label class="chip chip--copilot">
+      <input type="checkbox" name="tool" value="copilot" checked />
+      <span class="chip__dot"></span>Copilot
+    </label>
+  </div>
+
+  <div class="bar__actions">
+    <button id="theme-toggle" class="btn">Dark</button>
+    <button class="btn btn--print" onclick="window.print()">Print / PDF</button>
+  </div>
+</div>
+
+<p class="empty" id="empty">No commands match the selected tools.</p>
+
+<div class="grid">
+  {levels.map(level => (
+    <section
+      class="section"
+      data-level={level.id}
+      data-hidden="false"
+      style={`border-color: ${level.border}; background: ${level.rowBg};`}
+    >
+      <div class="section__head" style={`background: ${level.headerBg}; color: ${level.color};`}>
+        <span class="section__num">LVL {level.number}</span>
+        {level.title}
+      </div>
+      <ul class="section__rows">
+        {level.items.map(item => {
+          const tl = toolLabel(item.tools);
+          const displayLabel = (item as any).label ?? item.text;
+          const { preview, full, clipped } = firstLines(item.code.content, 5);
+          const toolsAttr = item.tools.includes('all') ? 'all' : item.tools.join(',');
+          return (
+            <li
+              class={`row${clipped ? ' row--clipped' : ''}`}
+              data-tools={toolsAttr}
+              data-hidden="false"
+              style={`border-color: ${level.border};`}
+            >
+              <div class="row__meta">
+                <span class="row__label">{displayLabel}</span>
+                {tl && <span class="row__tool">{tl}</span>}
+              </div>
+              <div class="row__code-wrap">
+                <pre data-preview={preview} data-full={full} data-expanded="false"><code>{preview}</code></pre>
+                <button class="row__copy" data-code={full}>Copy</button>
+              </div>
+              {clipped && (
+                <button class="row__expand">▸ show more</button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  ))}
+</div>
+
+<script>
+  // ── Tool filter ──
+  const chips = document.querySelectorAll<HTMLInputElement>('.bar__filters input[name="tool"]');
+  const rows  = document.querySelectorAll<HTMLElement>('.row');
+  const sections = document.querySelectorAll<HTMLElement>('.section');
+  const empty = document.getElementById('empty')!;
+
+  function applyFilter() {
+    const active = new Set(Array.from(chips).filter(c => c.checked).map(c => c.value));
+    sections.forEach(sec => {
+      let visibleInSection = 0;
+      sec.querySelectorAll<HTMLElement>('.row').forEach(row => {
+        const tools = (row.dataset.tools ?? 'all').split(',');
+        const show = tools.includes('all') || tools.some(t => active.has(t));
+        row.dataset.hidden = show ? 'false' : 'true';
+        if (show) visibleInSection++;
+      });
+      sec.dataset.hidden = visibleInSection === 0 ? 'true' : 'false';
+    });
+    const anyVisible = Array.from(sections).some(s => s.dataset.hidden === 'false');
+    empty.style.display = anyVisible ? 'none' : 'block';
+  }
+
+  chips.forEach(c => c.addEventListener('change', applyFilter));
+
+  // ── Expand/collapse ──
+  document.querySelectorAll<HTMLButtonElement>('.row__expand').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pre = btn.closest('.row')!.querySelector<HTMLPreElement>('pre')!;
+      const code = pre.querySelector('code')!;
+      const expanded = pre.dataset.expanded === 'true';
+      code.textContent = expanded ? pre.dataset.preview! : pre.dataset.full!;
+      pre.dataset.expanded = expanded ? 'false' : 'true';
+      btn.textContent = expanded ? '▸ show more' : '▴ show less';
+    });
+  });
+
+  // ── Copy ──
+  document.querySelectorAll<HTMLButtonElement>('.row__copy').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(btn.dataset.code ?? '').then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 1800);
+      });
+    });
+  });
+
+  // ── Dark mode ──
+  const themeBtn = document.getElementById('theme-toggle')!;
+  const savedTheme = localStorage.getItem('aikit-theme');
+  if (savedTheme === 'dark') {
+    document.documentElement.dataset.theme = 'dark';
+    themeBtn.textContent = 'Light';
+  }
+  themeBtn.addEventListener('click', () => {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    document.documentElement.dataset.theme = dark ? '' : 'dark';
+    themeBtn.textContent = dark ? 'Dark' : 'Light';
+    localStorage.setItem('aikit-theme', dark ? 'light' : 'dark');
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+---
+import roadmap from '../../../data/roadmap.json';
+import Header from '../components/Header.astro';
+import Sidebar from '../components/Sidebar.astro';
+import LevelSection from '../components/LevelSection.astro';
+import '../styles/global.css';
+
+const allItems = roadmap.levels.flatMap(l => l.sections.flatMap(s => s.items));
+const totalCount = allItems.length;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content={roadmap.meta.description} />
+  <title>{roadmap.meta.title}</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+  <div class="progress-bar-track" aria-hidden="true">
+    <div class="progress-bar-fill" id="global-progress-fill"></div>
+  </div>
+
+  <Header total={totalCount} tools={roadmap.tools} />
+
+  <div class="layout-wrapper">
+    <Sidebar levels={roadmap.levels} />
+    <main class="main">
+      <div class="content">
+        <div class="hero">
+          <h1>{roadmap.meta.title}</h1>
+          <p>{roadmap.meta.description}</p>
+          <div class="hero-tools">
+            {Object.entries(roadmap.tools).map(([key, tool]) => (
+              <span class={`hero-tool-badge hero-tool-badge--${key}`}>
+                {tool.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {roadmap.levels.map((level) => (
+          <LevelSection level={level} />
+        ))}
+      </div>
+    </main>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <script>
+    // ── Types ──
+    interface SavedProgress { [itemId: string]: boolean }
+
+    const STORAGE_KEY = 'aikit-roadmap-v1';
+    const THEME_KEY   = 'aikit-theme';
+
+    // ── Load saved progress ──
+    function loadProgress(): SavedProgress {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+      catch { return {}; }
+    }
+
+    function saveProgress(data: SavedProgress) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    // ── Apply saved checkboxes ──
+    const saved = loadProgress();
+    document.querySelectorAll<HTMLInputElement>('.checklist-input').forEach(cb => {
+      if (saved[cb.id]) cb.checked = true;
+    });
+
+    // ── Theme ──
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+    const themeBtn = document.getElementById('theme-toggle');
+    themeBtn?.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem(THEME_KEY, 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem(THEME_KEY, 'dark');
+      }
+    });
+
+    // ── Active tool filter state ──
+    let activeTools = new Set(['claude', 'gemini', 'copilot']);
+
+    function applyFilter() {
+      document.querySelectorAll<HTMLElement>('.checklist-item[data-tools]').forEach(item => {
+        const tools = (item.dataset.tools || '').split(' ');
+        const visible = tools.includes('all') || tools.some(t => activeTools.has(t));
+        item.dataset.hidden = visible ? 'false' : 'true';
+      });
+      updateProgress();
+    }
+
+    document.querySelectorAll<HTMLInputElement>('.tool-chip input').forEach(chip => {
+      chip.addEventListener('change', () => {
+        if (!chip.checked) {
+          // Prevent all-off
+          const checkedCount = document.querySelectorAll<HTMLInputElement>('.tool-chip input:checked').length;
+          if (checkedCount === 0) { chip.checked = true; return; }
+          activeTools.delete(chip.value);
+        } else {
+          activeTools.add(chip.value);
+        }
+        applyFilter();
+      });
+    });
+
+    // ── Progress ──
+    function updateProgress() {
+      const allVisible = [...document.querySelectorAll<HTMLElement>('.checklist-item')]
+        .filter(i => i.dataset.hidden !== 'true');
+      const checkedVisible = allVisible.filter(i => i.querySelector<HTMLInputElement>('.checklist-input')?.checked);
+
+      const total = allVisible.length;
+      const done = checkedVisible.length;
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+      const fill = document.getElementById('global-progress-fill');
+      if (fill) fill.style.width = pct + '%';
+
+      const counter = document.getElementById('progress-counter');
+      if (counter) counter.textContent = `${done} / ${total}`;
+
+      // Per-level mini bars
+      document.querySelectorAll<HTMLElement>('.level[id]').forEach(level => {
+        const lvlItems = [...level.querySelectorAll<HTMLElement>('.checklist-item')]
+          .filter(i => i.dataset.hidden !== 'true');
+        const lvlDone = lvlItems.filter(i => i.querySelector<HTMLInputElement>('.checklist-input')?.checked);
+        const lvlPct = lvlItems.length > 0 ? (lvlDone.length / lvlItems.length) * 100 : 0;
+
+        const miniBar = level.querySelector<HTMLElement>('.level-mini-fill');
+        const miniLabel = level.querySelector<HTMLElement>('.level-mini-label');
+        if (miniBar) {
+          miniBar.style.width = lvlPct + '%';
+          miniBar.classList.toggle('complete', lvlPct === 100);
+        }
+        if (miniLabel) miniLabel.textContent = `${lvlDone.length} / ${lvlItems.length}`;
+        level.classList.toggle('level--complete', lvlPct === 100 && lvlItems.length > 0);
+      });
+    }
+
+    // ── Save on change ──
+    document.addEventListener('change', (e) => {
+      const target = e.target as HTMLInputElement;
+      if (!target.matches('.checklist-input')) return;
+      saved[target.id] = target.checked;
+      saveProgress(saved);
+      updateProgress();
+    });
+
+    // ── Reset ──
+    document.getElementById('reset-btn')?.addEventListener('click', () => {
+      if (!confirm('Reset all progress? This cannot be undone.')) return;
+      document.querySelectorAll<HTMLInputElement>('.checklist-input').forEach(cb => cb.checked = false);
+      localStorage.removeItem(STORAGE_KEY);
+      updateProgress();
+    });
+
+    // ── Export ──
+    document.getElementById('export-btn')?.addEventListener('click', () => {
+      const data = loadProgress();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'aikit-progress.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // ── Import ──
+    document.getElementById('import-input')?.addEventListener('change', (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const imported = JSON.parse(ev.target?.result as string) as SavedProgress;
+          // Apply
+          Object.assign(saved, imported);
+          saveProgress(saved);
+          document.querySelectorAll<HTMLInputElement>('.checklist-input').forEach(cb => {
+            cb.checked = !!saved[cb.id];
+          });
+          updateProgress();
+        } catch {
+          alert('Invalid progress file.');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // ── Expand toggle for detail panels ──
+    document.querySelectorAll<HTMLButtonElement>('.expand-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!expanded));
+        const panelId = btn.getAttribute('aria-controls');
+        if (panelId) {
+          const panel = document.getElementById(panelId);
+          panel?.toggleAttribute('hidden');
+        }
+        btn.classList.toggle('open', !expanded);
+      });
+    });
+
+    // ── Copy buttons for code blocks ──
+    document.querySelectorAll<HTMLButtonElement>('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = btn.getAttribute('data-copy') || '';
+        navigator.clipboard.writeText(text).then(() => {
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+          }, 2000);
+        });
+      });
+    });
+
+    // ── Sidebar active section via IntersectionObserver ──
+    const sections = document.querySelectorAll<HTMLElement>('.level[id]');
+    const navLinks = document.querySelectorAll<HTMLAnchorElement>('.sidebar-nav-link[href^="#"]');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const link = document.querySelector<HTMLAnchorElement>(`.sidebar-nav-link[href="#${entry.target.id}"]`);
+        if (link) link.setAttribute('aria-current', entry.isIntersecting ? 'true' : 'false');
+      });
+    }, { rootMargin: '-48px 0px -70% 0px', threshold: 0 });
+
+    sections.forEach(s => observer.observe(s));
+
+    // ── Mobile drawer ──
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const sidebar = document.querySelector<HTMLElement>('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    function openDrawer() {
+      sidebar?.classList.add('open');
+      overlay?.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeDrawer() {
+      sidebar?.classList.remove('open');
+      overlay?.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    menuBtn?.addEventListener('click', openDrawer);
+    overlay?.addEventListener('click', closeDrawer);
+    document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+      link.addEventListener('click', closeDrawer);
+    });
+
+    // ── Init ──
+    applyFilter();
+  </script>
+</body>
+</html>

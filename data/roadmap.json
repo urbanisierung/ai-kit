@@ -1,0 +1,1723 @@
+{
+  "$schema": "./roadmap.schema.json",
+  "meta": {
+    "title": "AI Champion Roadmap",
+    "description": "A structured learning plan to become more effective with AI coding agents — Claude Code, Gemini CLI, and GitHub Copilot CLI.",
+    "version": "1.0.0"
+  },
+  "tools": {
+    "claude": {
+      "label": "Claude Code",
+      "color": "claude"
+    },
+    "gemini": {
+      "label": "Gemini CLI",
+      "color": "gemini"
+    },
+    "copilot": {
+      "label": "Copilot CLI",
+      "color": "copilot"
+    }
+  },
+  "levels": [
+    {
+      "id": "level-0",
+      "number": "0",
+      "title": "Foundation: AI Resources Repository",
+      "goal": "One git repo that survives machine changes and holds every config, skill, hook, and learning.",
+      "sections": [
+        {
+          "id": "level-0-main",
+          "title": null,
+          "items": [
+            {
+              "id": "l0-clone-repo",
+              "text": "Fork or clone ai-kit as your personal AI tools repository",
+              "label": "Fork or clone ai-kit as your personal AI tools repository",
+              "tools": [
+                "all"
+              ],
+              "why": "Every config, skill, hook, and learned preference lives here. Without a canonical repo, improvements stay trapped on one machine — a wipe or new laptop means starting from scratch.",
+              "code": {
+                "lang": "bash",
+                "content": "git clone https://github.com/urbanisierung/ai-kit ~/github.com/urbanisierung/ai-kit\n# Or fork it first on GitHub, then clone your fork"
+              },
+              "links": [
+                {
+                  "label": "ai-kit on GitHub",
+                  "url": "https://github.com/urbanisierung/ai-kit"
+                }
+              ]
+            },
+            {
+              "id": "l0-add-keys",
+              "text": "Copy `.env.example` to `.env` and fill in your API keys",
+              "label": "Copy `.env.example` to `.env` and fill in your API keys",
+              "tools": [
+                "all"
+              ],
+              "why": "The setup script reads keys from `.env` and injects them into MCP configs via envsubst. Without this, none of the tools that require API access will connect.",
+              "code": {
+                "lang": "bash",
+                "content": "cp .env.example .env\n# Edit .env — fill in:\n# ANTHROPIC_API_KEY=sk-ant-...\n# BRAVE_API_KEY=BSA_...\n# XAI_API_KEY=xai-...\n# MEM0_API_KEY=m0-..."
+              }
+            },
+            {
+              "id": "l0-customize-context",
+              "text": "Customize the context files for your preferred tools",
+              "label": "Customize the context files for your preferred tools",
+              "tools": [
+                "all"
+              ],
+              "why": "The defaults are generic. Tailoring your context files to your actual workflow is what separates 'agent following generic instructions' from 'agent following your instructions'.",
+              "detail": "Edit `claude/CLAUDE.md.global`, `copilot/copilot-instructions.md`, and `gemini/GEMINI.md.global`. Start with communication style (terse vs. detailed) and any non-obvious rules about your stack. Keep each file under 100 lines."
+            },
+            {
+              "id": "l0-run-setup",
+              "text": "Run `bash tools/setup.sh` to wire all configs in one shot",
+              "label": "Run `bash tools/setup.sh` to wire all configs in one shot",
+              "tools": [
+                "all"
+              ],
+              "why": "Manual symlinking across machines is error-prone and slow. The idempotent setup script means any machine — new laptop, remote server — goes from zero to your full configuration in under a minute.",
+              "code": {
+                "lang": "bash",
+                "content": "bash tools/setup.sh\n\n# What it does:\n# → Links claude/CLAUDE.md.global  →  ~/.claude/CLAUDE.md\n# → Links claude/skills/           →  ~/.claude/skills/\n# → Writes ~/.claude/mcp.json from template (keys injected from .env)\n# → Links gemini/GEMINI.md.global  →  ~/.gemini/GEMINI.md\n# → Sources dotfiles/.zshrc.ai from ~/.zshrc"
+              }
+            },
+            {
+              "id": "l0-verify",
+              "text": "Push to a private remote repo and verify the setup reproduces from scratch",
+              "label": "Push to a private remote repo and verify the setup reproduces from scratch",
+              "tools": [
+                "all"
+              ],
+              "why": "A repo that only lives locally is a backup risk. The whole point of this setup is that a new machine becomes productive in minutes — verify it now while the steps are fresh.",
+              "code": {
+                "lang": "bash",
+                "content": "# On a second machine (or after wiping ~/.claude):\ngit clone git@github.com:yourname/ai-kit.git\ncp ai-kit/.env.example ai-kit/.env  # fill in real keys\nbash ai-kit/tools/setup.sh"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "level-1",
+      "number": "1",
+      "title": "Context Engineering",
+      "goal": "Each tool's default behavior matches your preferences without prompting on every session.",
+      "sections": [
+        {
+          "id": "level-1-main",
+          "title": null,
+          "items": [
+            {
+              "id": "l1-review-format",
+              "text": "Review the existing `CLAUDE.md` in this repo as the reference format for all context files",
+              "tools": [
+                "all"
+              ],
+              "why": "Seeing the format before writing your own prevents common mistakes — wrong heading levels, missing frontmatter, rules that contradict each other."
+            },
+            {
+              "id": "l1-trim-claude-md",
+              "text": "Trim `CLAUDE.md` to under 100 lines; use `@imports` for long reference docs",
+              "tools": [
+                "claude"
+              ],
+              "why": "Every line is injected into every session. A 200-line CLAUDE.md consumes ~4,000 tokens before you type a word. Length is actively counterproductive."
+            },
+            {
+              "id": "l1-subdir-claude-md",
+              "text": "Add a subdirectory `CLAUDE.md` for any subtree with different conventions",
+              "tools": [
+                "claude"
+              ],
+              "why": "A monorepo frontend and backend rarely share the same conventions. Subdirectory files scope rules to where they're actually relevant, keeping context lean everywhere else."
+            },
+            {
+              "id": "l1-copilot-focused",
+              "text": "Keep `copilot-instructions.md` focused — Copilot reads it on every message, no lazy loading",
+              "tools": [
+                "copilot"
+              ],
+              "why": "Copilot doesn't lazy-load rules — the full file is sent on every message. Every sentence that isn't directly useful is dead weight in every single conversation."
+            },
+            {
+              "id": "l1-copilot-agents-md",
+              "text": "Enable `AGENTS.md` in VS Code: `\"chat.useAgentsMdFile\": true` in settings",
+              "tools": [
+                "copilot"
+              ],
+              "why": "Without this setting, Copilot ignores your agent profile files. One flag enables the entire scoped-agent system."
+            },
+            {
+              "id": "l1-gemini-md-project",
+              "text": "Place `GEMINI.md` at repo root for project scope; `~/.gemini/GEMINI.md` for global defaults",
+              "tools": [
+                "gemini"
+              ],
+              "why": "Without a project-level file, Gemini starts each session with no knowledge of your conventions. The global file prevents you from repeating the same preferences in every chat."
+            },
+            {
+              "id": "l1-concise-rule",
+              "text": "Add a rule across all context files: \"Respond concisely; no filler, no preamble\"",
+              "tools": [
+                "all"
+              ],
+              "why": "The single highest-leverage rule. 'No filler' eliminates preamble, summaries, and apologies — the agent gets to the point faster on every single response."
+            },
+            {
+              "id": "l1-correction-rule",
+              "text": "After each session where you correct the agent, add one rule to the relevant context file",
+              "label": "After each correction session, add one rule to your context file",
+              "tools": [
+                "all"
+              ],
+              "why": "Corrections you type once should never need to be typed again. Each rule added is a permanent improvement to every future session.",
+              "detail": "When the agent does something wrong and you correct it mid-session, that correction is ephemeral — it only affects the current context window. The moment the session ends, the agent reverts. The fix: immediately after correcting the agent, ask it to write the rule into your context file. Example: you told the agent 'don't wrap every function in a try/catch, only validate at system boundaries.' That's three sessions of repeated corrections or one line in CLAUDE.md.",
+              "code": {
+                "lang": "markdown",
+                "content": "# Example: you just corrected the agent for over-wrapping in try/catch\n\n# 1. Ask the agent to encode the rule:\n\"Add a rule to CLAUDE.md: never wrap internal function calls in try/catch.\nOnly validate at system boundaries (user input, external APIs).\"\n\n# 2. The agent appends to CLAUDE.md:\n## Rules\n- Never wrap internal function calls in try/catch.\n  Only validate at system boundaries (user input, external APIs).\n\n# 3. Every future session starts with that rule already loaded.\n# You will never type that correction again."
+              }
+            },
+            {
+              "id": "l1-prune-rules",
+              "text": "Prune rules that haven't fired after 10 sessions",
+              "tools": [
+                "all"
+              ],
+              "why": "Rules that never fire are noise that costs tokens. Pruning keeps the file lean and ensures every remaining rule is earning its place."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "level-2",
+      "number": "2",
+      "title": "Compounding Engineering",
+      "goal": "Each cycle of work improves future cycles. 80% planning and review, 20% execution.",
+      "sections": [
+        {
+          "id": "level-2-main",
+          "title": null,
+          "items": [
+            {
+              "id": "l2-install-claude",
+              "text": "Install compound-engineering: `/plugin marketplace add EveryInc/compound-engineering-plugin` then `/plugin install compound-engineering`",
+              "label": "Install compound-engineering",
+              "code": {
+                "lang": "bash",
+                "content": "/plugin marketplace add EveryInc/compound-engineering-plugin\n/plugin install compound-engineering"
+              },
+              "links": [
+                {
+                  "label": "EveryInc/compound-engineering-plugin",
+                  "url": "https://github.com/EveryInc/compound-engineering-plugin"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "The plugin is what makes the /ce commands available. Without it, /ce:plan is just text with no behavior attached."
+            },
+            {
+              "id": "l2-install-gemini",
+              "text": "Install compound-engineering: `bunx @every-env/compound-plugin install compound-engineering --to gemini`",
+              "label": "Install compound-engineering",
+              "code": {
+                "lang": "bash",
+                "content": "bunx @every-env/compound-plugin install compound-engineering --to gemini"
+              },
+              "links": [
+                {
+                  "label": "EveryInc/compound-engineering-plugin",
+                  "url": "https://github.com/EveryInc/compound-engineering-plugin"
+                }
+              ],
+              "tools": [
+                "gemini"
+              ],
+              "why": "Same capability as the Claude install — compound engineering works across tools. Don't skip it because you also use Claude."
+            },
+            {
+              "id": "l2-install-copilot",
+              "text": "Install compound-engineering: `bunx @every-env/compound-plugin install compound-engineering --to copilot`",
+              "label": "Install compound-engineering",
+              "code": {
+                "lang": "bash",
+                "content": "bunx @every-env/compound-plugin install compound-engineering --to copilot"
+              },
+              "links": [
+                {
+                  "label": "EveryInc/compound-engineering-plugin",
+                  "url": "https://github.com/EveryInc/compound-engineering-plugin"
+                }
+              ],
+              "tools": [
+                "copilot"
+              ],
+              "why": "Gives Copilot the same Plan → Delegate → Assess → Codify loop. Cross-tool consistency means you don't have to think differently depending on which agent you're using."
+            },
+            {
+              "id": "l2-ce-plan",
+              "text": "Run `/ce:plan` on a real backlog task instead of just prompting",
+              "tools": [
+                "all"
+              ],
+              "why": "Jumping straight to /ce:work without a plan is the most common source of mid-task pivots. Five minutes of planning eliminates hours of correction."
+            },
+            {
+              "id": "l2-ce-work",
+              "text": "Run `/ce:work` to execute with worktree isolation and task tracking",
+              "tools": [
+                "all"
+              ],
+              "why": "Worktree isolation means a broken implementation doesn't contaminate your main branch. Task tracking means you can hand off mid-session without losing context."
+            },
+            {
+              "id": "l2-ce-review",
+              "text": "Run `/ce:review` before merging any agent-produced code",
+              "tools": [
+                "all"
+              ],
+              "why": "The agent that implemented the code will rationalize its own decisions. A review pass from a fresh context catches what the implementing session missed."
+            },
+            {
+              "id": "l2-ce-compound",
+              "text": "Run `/ce:compound` after the task — review the extracted learnings",
+              "tools": [
+                "all"
+              ],
+              "why": "This is what separates compound engineering from regular AI use. Without /ce:compound, each task is isolated. With it, the lesson from today becomes a rule that prevents the same mistake tomorrow."
+            },
+            {
+              "id": "l2-commit-learnings",
+              "text": "Commit the learnings output to `memory/` in your ai-kit repo",
+              "tools": [
+                "all"
+              ],
+              "why": "Learnings that stay only in your local session are lost the next time you open a new chat. Committed to the repo, they travel to every machine and persist forever."
+            },
+            {
+              "id": "l2-repeat-loop",
+              "text": "Repeat the Plan → Delegate → Assess → Codify loop on 3 real tasks",
+              "tools": [
+                "all"
+              ],
+              "why": "The loop compounds in value — the third task benefits from two rounds of learning. Running it once gives you a taste; running it three times shows you the actual leverage."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "level-3",
+      "number": "3",
+      "title": "Skills and Extensions",
+      "goal": "The agent gains specialized capabilities without permanently consuming context.",
+      "sections": [
+        {
+          "id": "level-3-main",
+          "title": null,
+          "items": [
+            {
+              "id": "l3-write-skill",
+              "text": "Write your first custom `SKILL.md` — write the `description` frontmatter first (it's the routing key)",
+              "tools": [
+                "all"
+              ],
+              "why": "A skill you write is a procedure you never have to explain again. The description field is critical — Claude uses it to decide whether to load the skill, so precision there is routing logic, not documentation."
+            },
+            {
+              "id": "l3-store-skill",
+              "text": "Store the skill in your ai-kit repo under the relevant tool's skills directory",
+              "tools": [
+                "all"
+              ],
+              "why": "A skill that only exists in one project is inaccessible from all other projects. The ai-kit repo is what makes a skill globally available."
+            },
+            {
+              "id": "l3-agents-md",
+              "text": "Add `AGENTS.md` to the repo root if not done in Level 0 — all tools pick it up",
+              "tools": [
+                "all"
+              ],
+              "why": "All four major tools recognize AGENTS.md. Writing one file gives every agent the same baseline context without duplicating effort across tool-specific files."
+            },
+            {
+              "id": "l3-skill-creator",
+              "text": "Install `skill-creator` from skills.sh (meta-skill for writing skills)",
+              "label": "Install skill-creator from skills.sh (meta-skill for writing skills)",
+              "code": {
+                "lang": "bash",
+                "content": "/plugin install skill-creator"
+              },
+              "links": [
+                {
+                  "label": "anthropics/skills — skill-creator",
+                  "url": "https://github.com/anthropics/skills/tree/main/skills/skill-creator"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "Writing a good SKILL.md is non-obvious — the description routing, the trigger conditions, the success criteria all have specific patterns. skill-creator teaches the format by example."
+            },
+            {
+              "id": "l3-superpowers",
+              "text": "Install Superpowers: `/plugin install superpowers@claude-plugins-official`; run on a real task",
+              "label": "Install Superpowers and run on a real task",
+              "code": {
+                "lang": "bash",
+                "content": "/plugin install superpowers@claude-plugins-official"
+              },
+              "links": [
+                {
+                  "label": "obra/superpowers",
+                  "url": "https://github.com/obra/superpowers"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "The single fastest way to see what Level 5 agent behavior looks like in practice. Watching the brainstorm → plan → implement → test loop run on a real task is more instructive than reading about it."
+            },
+            {
+              "id": "l3-browse-skills",
+              "text": "Browse skills.sh and install 2–3 skills that match your workflow",
+              "links": [
+                {
+                  "label": "skills.sh registry",
+                  "url": "https://skills.sh/"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "Skills already written by practitioners who solved the same problems you have. Finding two or three relevant ones on day one is faster than writing them from scratch."
+            },
+            {
+              "id": "l3-harness-audit",
+              "text": "Run `/harness-audit` from Everything Claude Code to score your setup",
+              "label": "Run harness audit from Everything Claude Code",
+              "code": {
+                "lang": "bash",
+                "content": "/harness-audit"
+              },
+              "links": [
+                {
+                  "label": "affaan-m/everything-claude-code",
+                  "url": "https://github.com/affaan-m/everything-claude-code"
+                },
+                {
+                  "label": "ecc.tools",
+                  "url": "https://ecc.tools/"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "optional": true,
+              "why": "Without a baseline score, you don't know which capability gaps matter most. /harness-audit tells you where you are on the maturity curve before you start adding more."
+            },
+            {
+              "id": "l3-superpowers-gemini",
+              "text": "Install Superpowers for Gemini CLI via the Gemini extension mechanism",
+              "links": [
+                {
+                  "label": "obra/superpowers",
+                  "url": "https://github.com/obra/superpowers"
+                }
+              ],
+              "tools": [
+                "gemini"
+              ],
+              "why": "The same planning and execution discipline from Superpowers, applied to Gemini CLI sessions. Same methodology, different runtime."
+            },
+            {
+              "id": "l3-awesome-copilot",
+              "text": "Browse github/awesome-copilot for community skills and agents",
+              "links": [
+                {
+                  "label": "github/awesome-copilot",
+                  "url": "https://github.com/github/awesome-copilot"
+                }
+              ],
+              "tools": [
+                "copilot"
+              ],
+              "why": "175+ agents and 208+ skills the Copilot community has already built. Browsing it before writing your own prevents reinventing what already exists."
+            },
+            {
+              "id": "l3-copilot-agents",
+              "text": "Create `.github/agents/*.md` files for scoped Copilot agents (VS Code agent picker)",
+              "tools": [
+                "copilot"
+              ],
+              "why": "Agent profiles let you create named specialists — a 'code reviewer', a 'test writer', a 'PR describer' — each with their own scoped system prompt. Without them, every Copilot conversation starts from the same generic baseline."
+            },
+            {
+              "id": "l3-gemini-extensions",
+              "text": "Create an extension in `~/.gemini/extensions/<name>/gemini-extension.json` to bundle MCP servers + instructions",
+              "tools": [
+                "gemini"
+              ],
+              "why": "Extensions are how Gemini gets persistent, reusable behavior. Without them, every Gemini session is stateless and context-free beyond what GEMINI.md provides."
+            },
+            {
+              "id": "l3-sentry-skills",
+              "text": "Study Sentry's skills repo for the subagent delegation pattern — applies to all tools",
+              "detail": "Sentry's internal skills cover code review, commit generation, security audits, Django performance, and brand guidelines. The PR review skill is particularly worth studying: one orchestrating skill spawns multiple focused subagents (database safety, complexity analysis, prompt health, linting) and aggregates their results.",
+              "links": [
+                {
+                  "label": "getsentry/skills",
+                  "url": "https://github.com/getsentry/skills"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "Sentry's PR review skill is the clearest real-world example of the orchestrator → parallel subagents → aggregation pattern. Reading the implementation is faster than discovering the pattern yourself."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "level-4",
+      "number": "4",
+      "title": "MCP Servers",
+      "goal": "The agent can search the web and reach external systems. MCP context cost is managed.",
+      "sections": [
+        {
+          "id": "level-4-main",
+          "title": null,
+          "items": [
+            {
+              "id": "l4-brave-search",
+              "text": "Get a Brave Search API key; add the MCP for your primary tool",
+              "label": "Add Brave Search MCP (get key at api.search.brave.com)",
+              "code": {
+                "lang": "bash",
+                "content": "# Claude Code\nclaude mcp add brave-search -e BRAVE_API_KEY=BSA_YOUR_KEY -- npx -y @modelcontextprotocol/server-brave-search\n\n# Gemini CLI — add to ~/.gemini/settings.json\n# { \"mcpServers\": { \"brave-search\": { \"command\": \"npx\", \"args\": [\"-y\", \"@modelcontextprotocol/server-brave-search\"], \"env\": { \"BRAVE_API_KEY\": \"BSA_...\" } } } }"
+              },
+              "links": [
+                {
+                  "label": "Get API key",
+                  "url": "https://api-dashboard.search.brave.com/register"
+                },
+                {
+                  "label": "Brave Search API docs",
+                  "url": "https://brave.com/search/api/"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "Without search, the agent works from training data alone — no awareness of libraries released after its cutoff, no ability to look up current documentation, no real-time context. Search is the single biggest capability upgrade per minute of setup time."
+            },
+            {
+              "id": "l4-deepwiki",
+              "text": "Add DeepWiki MCP — no API key required",
+              "label": "Add DeepWiki MCP — no API key required",
+              "code": {
+                "lang": "json",
+                "content": "{ \"mcpServers\": { \"deepwiki\": { \"command\": \"npx\", \"args\": [\"-y\", \"@deepwiki/mcp\"] } } }"
+              },
+              "links": [
+                {
+                  "label": "DeepWiki MCP",
+                  "url": "https://mcp.deepwiki.com/"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "Pulling a library's docs into context manually is slow and consumes tokens. DeepWiki provides structured access to any open-source repo's documentation on demand, with no manual copying."
+            },
+            {
+              "id": "l4-grok",
+              "text": "Sign up at console.x.ai; add Grok MCP for X/Twitter search + large free tier",
+              "label": "Add Grok MCP for X/Twitter search (sign up at console.x.ai)",
+              "detail": "Opt into the data-sharing program for $175/month of free credits.",
+              "code": {
+                "lang": "bash",
+                "content": "# Get the MCP from github.com/merterbak/Grok-MCP\n# Add XAI_API_KEY to your .env"
+              },
+              "links": [
+                {
+                  "label": "xAI Console (sign up)",
+                  "url": "https://console.x.ai"
+                },
+                {
+                  "label": "merterbak/Grok-MCP",
+                  "url": "https://github.com/merterbak/Grok-MCP"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "For anything where X/Twitter signal matters — trending libraries, community sentiment, real-time debates — Grok has unique access. The $175/month free tier makes it effectively zero cost."
+            },
+            {
+              "id": "l4-store-keys",
+              "text": "Store all keys in `ai-kit/.env`; update `mcp.json.template` with `${VAR_NAME}` placeholders",
+              "tools": [
+                "all"
+              ],
+              "why": "Keys hardcoded in config files get committed to git. The template + envsubst pattern keeps keys out of version control while making configs reproducible across machines."
+            },
+            {
+              "id": "l4-test-search",
+              "text": "Test: ask the agent to research something — it should search without you pasting URLs",
+              "tools": [
+                "all"
+              ],
+              "why": "Verifying search works before relying on it in a real task prevents the frustrating experience of discovering a broken MCP mid-session."
+            },
+            {
+              "id": "l4-context-cmd",
+              "text": "Run `/context` in a fresh session — investigate if > 15% is pre-consumed before typing",
+              "tools": [
+                "claude"
+              ],
+              "why": "Most practitioners are surprised the first time they run /context — 30–40% consumed before typing a word is common. You cannot optimize what you cannot see."
+            },
+            {
+              "id": "l4-disable-mcps",
+              "text": "Habit: disable MCPs not needed in the current session",
+              "tools": [
+                "claude"
+              ],
+              "why": "Every mounted MCP injects its full tool schemas on every turn whether Claude uses them or not. Three idle MCPs can consume 10–15% of your context window before any code appears."
+            },
+            {
+              "id": "l4-exclude-tools",
+              "text": "Use `\"excludeTools\"` in extension JSON to block dangerous tool combos per context",
+              "tools": [
+                "gemini"
+              ],
+              "why": "Gemini's extension system cannot run arbitrary hooks, but it can block dangerous operations. Excluding destructive commands is the closest equivalent to Claude's PostToolUse safety checks."
+            },
+            {
+              "id": "l4-copilot-mcp",
+              "text": "MCP in Copilot is VS Code-only — manage via workspace settings, no CLI-native method",
+              "links": [
+                {
+                  "label": "Copilot MCP docs",
+                  "url": "https://docs.github.com/en/copilot/using-github-copilot/using-extensions-to-integrate-external-tools-with-copilot-chat"
+                }
+              ],
+              "tools": [
+                "copilot"
+              ],
+              "why": "Knowing that Copilot's MCP support is VS Code-only prevents wasted time trying to configure it from the CLI. Use VS Code settings for Copilot MCP, CLI for Claude and Gemini."
+            },
+            {
+              "id": "l4-mem0",
+              "text": "Add mem0 MCP for cross-session memory — works for all tools via the MCP standard",
+              "label": "Add mem0 MCP for cross-session memory",
+              "detail": "Free cloud tier: 10K memories, 1K retrieval calls/month — no credit card needed. The cloud MCP at mcp.mem0.ai requires an API key. A fully local setup (no API key, no Docker) is also possible using Ollama + local Qdrant or ChromaDB.",
+              "code": {
+                "lang": "bash",
+                "content": "# Cloud (easiest — free tier available)\nnpx mcp-add --name mem0-mcp --type http --url \"https://mcp.mem0.ai/mcp\"\nclaude mcp add mem0-mcp --scope global\n\n# Add to .env:\nMEM0_API_KEY=m0-...\n\n# Local (no API key, no Docker)\npip install mem0ai ollama chromadb\n# Then configure with Ollama LLM + ChromaDB vector store"
+              },
+              "links": [
+                {
+                  "label": "Get API key (free tier)",
+                  "url": "https://app.mem0.ai/dashboard/settings?tab=api-keys"
+                },
+                {
+                  "label": "mem0 MCP docs",
+                  "url": "https://docs.mem0.ai/platform/mem0-mcp"
+                },
+                {
+                  "label": "Local setup with Ollama",
+                  "url": "https://docs.mem0.ai/cookbooks/companions/local-companion-ollama"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "optional": true,
+              "why": "Every new session starts blank — the agent has no memory of your past decisions, preferences, or architectural choices. Persistent memory closes this gap and compounds over time."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "level-5",
+      "number": "5",
+      "title": "Prompting Discipline",
+      "goal": "Better first responses and fewer correction loops.",
+      "sections": [
+        {
+          "id": "level-5-main",
+          "title": null,
+          "items": [
+            {
+              "id": "l5-because-habit",
+              "text": "Before every non-trivial task: write one sentence starting with \"because\"",
+              "tools": [
+                "all"
+              ],
+              "why": "Context transforms output. 'Refactor this function' produces a generic refactor. 'Refactor this function because it's being called from three places with inconsistent error handling' produces a targeted, correct one. The word 'because' forces the relevant context into the prompt."
+            },
+            {
+              "id": "l5-plan-mode",
+              "text": "Use Plan Mode (`Shift+Tab`) to iterate on the plan before any code is written",
+              "label": "Use Plan Mode to iterate before any code is written",
+              "code": {
+                "lang": "bash",
+                "content": "# Press Shift+Tab in Claude Code to enter Plan Mode"
+              },
+              "tools": [
+                "claude"
+              ],
+              "why": "Agents jump to implementation by default and bypass the exploratory thinking that surfaces real constraints. Plan Mode enforces a deliberate pause before any file is touched."
+            },
+            {
+              "id": "l5-annotation-pattern",
+              "text": "Try the inline annotation pattern: edit spec file directly, add `%%` notes, tell the agent `check %% notes`",
+              "tools": [
+                "all"
+              ],
+              "why": "Conversational corrections ('no, I meant...') are imprecise and add conversation history the agent must reason through. Inline annotations in the spec file are precise and unambiguous."
+            },
+            {
+              "id": "l5-session-summary",
+              "text": "At the end of long sessions: ask \"Summarize what changed, assumptions made, and what you'd do differently\"",
+              "tools": [
+                "all"
+              ],
+              "why": "The assumptions the agent made during a long session are invisible unless you ask. The assumptions section of a summary surfaces things you'd otherwise discover three days later when something breaks."
+            },
+            {
+              "id": "l5-separate-review",
+              "text": "For any review pass: use a separate session or model — don't let the same instance grade its own exam",
+              "tools": [
+                "all"
+              ],
+              "why": "The implementing agent rationalizes its own decisions. A fresh context — even the same model — will find issues the implementing session glossed over. This is not optional for anything going to production."
+            },
+            {
+              "id": "l5-power-prompt",
+              "text": "Run a Pandya-style power prompt on something real in this repo and observe the parallelism",
+              "tools": [
+                "all"
+              ],
+              "why": "The Pandya power prompt demonstrates that a single paragraph of intent can orchestrate parallel agents, update CLAUDE.md, and create a reusable skill — all from one message. Seeing it run on your own codebase makes the capability concrete."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "level-6",
+      "number": "6",
+      "title": "Token Management and Observability",
+      "goal": "Know what the context window contains. Stop burning tokens on noise.",
+      "sections": [
+        {
+          "id": "level-6-main",
+          "title": null,
+          "items": [
+            {
+              "id": "l6-claude-hud-install",
+              "text": "Install claude-hud: `/plugin marketplace add jarrodwatts/claude-hud && /plugin install claude-hud`",
+              "label": "Install claude-hud for live context bar and subagent status",
+              "code": {
+                "lang": "bash",
+                "content": "/plugin marketplace add jarrodwatts/claude-hud\n/plugin install claude-hud\n/claude-hud:setup"
+              },
+              "links": [
+                {
+                  "label": "jarrodwatts/claude-hud",
+                  "url": "https://github.com/jarrodwatts/claude-hud"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "Context exhaustion sneaks up on you. Without visibility, you discover the window is full after the agent has already started a complex task and has to restart. claude-hud makes this visible before it becomes a problem."
+            },
+            {
+              "id": "l6-claude-hud-configure",
+              "text": "Run `/claude-hud:setup` then `/claude-hud:configure` — enable agent and todo lines",
+              "label": "Configure claude-hud to show agent and todo lines",
+              "code": {
+                "lang": "bash",
+                "content": "/claude-hud:configure"
+              },
+              "links": [
+                {
+                  "label": "jarrodwatts/claude-hud",
+                  "url": "https://github.com/jarrodwatts/claude-hud"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "The agent and todo lines are off by default but are the most useful for agentic sessions — they show which subagent is running, what it's doing, and how many tasks remain. The context bar alone is only half the picture."
+            },
+            {
+              "id": "l6-context-cmd",
+              "text": "Run `/context` before any heavy session; investigate if > 15% is pre-consumed",
+              "tools": [
+                "claude"
+              ],
+              "why": "Knowing how much context is pre-consumed before any task starts is essential for planning session length. If 30% is gone before you type, you have a different budget than if 5% is gone."
+            },
+            {
+              "id": "l6-compact-habit",
+              "text": "Habit: use `/compact` or start a fresh session when the context bar turns yellow",
+              "tools": [
+                "claude"
+              ],
+              "why": "A full context window causes the model to lose track of early instructions. /compact preserves the essential state while freeing up room — like a mid-session memory consolidation."
+            },
+            {
+              "id": "l6-gemini-context",
+              "text": "Watch for context warnings in Gemini CLI output; start fresh sessions when switching topics",
+              "tools": [
+                "gemini"
+              ],
+              "why": "Gemini has a large context window but it's not infinite. Treating it as unlimited leads to context bloat that degrades attention to early instructions. Fresh sessions for new topics is the discipline that prevents this."
+            },
+            {
+              "id": "l6-copilot-sessions",
+              "text": "No built-in context visibility — keep sessions short and topic-scoped as a discipline",
+              "tools": [
+                "copilot"
+              ],
+              "why": "Without a context bar, the only signal that a session is overloaded is degraded output quality — which you only notice after the damage is done. Proactive session hygiene prevents this."
+            },
+            {
+              "id": "l6-rtk-install",
+              "text": "Install RTK (Rust Token Killer): `brew install rtk` (macOS) or `curl … | sh` (Linux)",
+              "label": "Install RTK (Rust Token Killer) — 60–90% token savings on shell output",
+              "code": {
+                "lang": "bash",
+                "content": "# macOS\nbrew install rtk\n\n# Linux\ncurl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh"
+              },
+              "links": [
+                {
+                  "label": "rtk-ai/rtk",
+                  "url": "https://github.com/rtk-ai/rtk"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "Token costs compound quickly in agentic sessions. RTK can reduce per-session token usage by 60–90% on shell output alone — which directly reduces cost and extends effective context budget."
+            },
+            {
+              "id": "l6-rtk-claude",
+              "text": "Activate RTK hook: `rtk init -g`",
+              "label": "Activate RTK hook for Claude Code",
+              "code": {
+                "lang": "bash",
+                "content": "rtk init -g"
+              },
+              "links": [
+                {
+                  "label": "rtk-ai/rtk",
+                  "url": "https://github.com/rtk-ai/rtk"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "The hook must be registered for RTK to intercept Claude Code's shell commands. Installation without the hook does nothing."
+            },
+            {
+              "id": "l6-rtk-gemini",
+              "text": "Activate RTK hook: `rtk init -g --gemini`",
+              "label": "Activate RTK hook for Gemini CLI",
+              "code": {
+                "lang": "bash",
+                "content": "rtk init -g --gemini"
+              },
+              "links": [
+                {
+                  "label": "rtk-ai/rtk",
+                  "url": "https://github.com/rtk-ai/rtk"
+                }
+              ],
+              "tools": [
+                "gemini"
+              ],
+              "why": "Same as the Claude hook — Gemini CLI uses a different hook registration path. Both must be set up separately."
+            },
+            {
+              "id": "l6-rtk-copilot",
+              "text": "Activate RTK hook: `rtk init -g --codex`",
+              "label": "Activate RTK hook for Copilot / Codex",
+              "code": {
+                "lang": "bash",
+                "content": "rtk init -g --codex"
+              },
+              "links": [
+                {
+                  "label": "rtk-ai/rtk",
+                  "url": "https://github.com/rtk-ai/rtk"
+                }
+              ],
+              "tools": [
+                "copilot"
+              ],
+              "why": "The Codex hook target covers Copilot CLI sessions. Without this step RTK is installed but not active."
+            },
+            {
+              "id": "l6-rtk-gain",
+              "text": "Run `rtk gain` at the end of your next session — note the savings",
+              "label": "Check RTK token savings after your next session",
+              "code": {
+                "lang": "bash",
+                "content": "rtk gain"
+              },
+              "links": [
+                {
+                  "label": "rtk-ai/rtk",
+                  "url": "https://github.com/rtk-ai/rtk"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "The savings number is usually surprising and motivating. Seeing the actual token reduction makes the tradeoff real and encourages keeping the tool active."
+            },
+            {
+              "id": "l6-last30days",
+              "text": "Install last30days skill — see tool-specific install in ai-champion.md",
+              "label": "Install last30days skill",
+              "code": {
+                "lang": "bash",
+                "content": "# Claude Code\n/plugin marketplace add mvanhorn/last30days-skill\n/plugin install last30days@last30days-skill\n\n# Gemini CLI\ngemini extensions install https://github.com/mvanhorn/last30days-skill.git"
+              },
+              "links": [
+                {
+                  "label": "mvanhorn/last30days-skill",
+                  "url": "https://github.com/mvanhorn/last30days-skill"
+                }
+              ],
+              "tools": [
+                "claude",
+                "gemini"
+              ],
+              "why": "Training data has a cutoff. Last30days gives the agent real-time community intelligence — what practitioners are actually saying, what tools are winning, what's breaking — from the past 30 days."
+            },
+            {
+              "id": "l6-last30days-run",
+              "text": "Run `/last30days <current topic>` and review the Polymarket section",
+              "label": "Run last30days on a current topic and review the Polymarket section",
+              "code": {
+                "lang": "bash",
+                "content": "/last30days <your topic>\n/last30days <your topic> --quick   # faster, less depth\n/last30days topic1 vs topic2       # comparative mode"
+              },
+              "links": [
+                {
+                  "label": "mvanhorn/last30days-skill",
+                  "url": "https://github.com/mvanhorn/last30days-skill"
+                }
+              ],
+              "tools": [
+                "claude",
+                "gemini"
+              ],
+              "why": "The Polymarket section is the part you won't get from a search engine: real-money probability estimates on tech outcomes. It's a unique signal that sits alongside community sentiment."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "level-7",
+      "number": "7",
+      "title": "Hooks and Persistent Memory",
+      "goal": "The agent detects its own errors without prompting. Sessions start with context from previous ones.",
+      "sections": [
+        {
+          "id": "level-7-hooks",
+          "title": "Backpressure / Hooks",
+          "items": [
+            {
+              "id": "l7-hook-linter",
+              "text": "Add a `PostToolUse` hook that runs your linter after every file write",
+              "label": "Add a PostToolUse hook that runs your linter after every file write",
+              "code": {
+                "lang": "json",
+                "content": "// In claude/settings.json\n{\n  \"hooks\": {\n    \"PostToolUse\": [\n      { \"command\": \"pnpm lint 2>&1 | tail -20\" }\n    ]\n  }\n}"
+              },
+              "links": [
+                {
+                  "label": "Claude Code hooks docs",
+                  "url": "https://docs.anthropic.com/en/docs/claude-code/hooks"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "Without a feedback signal, the agent writes broken code, you point it out, it fixes it — three turns per error. A lint hook fires automatically and the agent self-corrects in one turn. This is the difference between an assistant and an autonomous worker."
+            },
+            {
+              "id": "l7-hook-verify",
+              "text": "Verify the hook fires and Claude corrects lint errors without prompting",
+              "links": [
+                {
+                  "label": "Claude Code hooks docs",
+                  "url": "https://docs.anthropic.com/en/docs/claude-code/hooks"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "Setting up a hook that silently fails is worse than no hook — you think you have backpressure when you don't. Verification is the only way to confirm the feedback loop is actually closed."
+            },
+            {
+              "id": "l7-hook-fast",
+              "text": "Keep hooks fast — slow hooks degrade the feedback loop (target < 2s)",
+              "links": [
+                {
+                  "label": "Claude Code hooks docs",
+                  "url": "https://docs.anthropic.com/en/docs/claude-code/hooks"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "A 10-second hook runs on every single tool call. In a 50-call session that's 8 minutes of waiting. Slow hooks don't just feel bad — they change the economics of agentic sessions."
+            },
+            {
+              "id": "l7-rudel",
+              "text": "Install Rudel for session analytics: `npm install -g rudel && rudel login && rudel enable`",
+              "label": "Install Rudel for session analytics",
+              "code": {
+                "lang": "bash",
+                "content": "npm install -g rudel\nrudel login\nrudel enable"
+              },
+              "links": [
+                {
+                  "label": "obsessiondb/rudel",
+                  "url": "https://github.com/obsessiondb/rudel"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "optional": true,
+              "why": "You cannot improve what you cannot measure. Rudel makes token usage, session patterns, and model costs visible across sessions — turning a gut feeling about AI productivity into data."
+            },
+            {
+              "id": "l7-gemini-linter-mcp",
+              "text": "Create an extension that bundles your linter as an MCP tool so Gemini can call it explicitly",
+              "tools": [
+                "gemini"
+              ],
+              "why": "Gemini has no PostToolUse hook system. Wrapping your linter as an explicit tool is the closest equivalent — the agent calls it deliberately instead of automatically, but the feedback loop is still there."
+            },
+            {
+              "id": "l7-gemini-exclude-tools",
+              "text": "Use `\"excludeTools\"` to block destructive operations (e.g., `run_shell_command(rm -rf)`)",
+              "tools": [
+                "gemini"
+              ],
+              "why": "An agent with unrestricted shell access can run rm -rf with no confirmation. excludeTools is a hard block, not a prompt-level request — it prevents the action before it reaches the model."
+            },
+            {
+              "id": "l7-copilot-precommit",
+              "text": "Set up git-level pre-commit hooks (`lefthook` or `husky`) — Copilot has no in-session hook system",
+              "tools": [
+                "copilot"
+              ],
+              "why": "Copilot has no in-session hooks. Git-level pre-commit hooks are the next best thing — they catch errors before they're committed, even if they don't close the loop mid-session."
+            }
+          ]
+        },
+        {
+          "id": "level-7-memory",
+          "title": "Persistent Memory",
+          "items": [
+            {
+              "id": "l7-pi-learning-install",
+              "text": "Install pi-self-learning: `npm install -g @pi-labs/cli && pi install npm:pi-self-learning`",
+              "label": "Install pi-self-learning for automatic session memory capture",
+              "code": {
+                "lang": "bash",
+                "content": "npm install -g @pi-labs/cli\npi install npm:pi-self-learning"
+              },
+              "links": [
+                {
+                  "label": "mcollina/pi-self-learning",
+                  "url": "https://github.com/mcollina/pi-self-learning"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "Every correction you give the agent teaches it something — but only for that session. pi-self-learning captures those corrections automatically and builds a corpus of durable preferences across sessions."
+            },
+            {
+              "id": "l7-pi-learning-month",
+              "text": "After one week, run `/learning-month` and review the output",
+              "label": "Review a month of captured learnings",
+              "code": {
+                "lang": "bash",
+                "content": "/learning-month"
+              },
+              "links": [
+                {
+                  "label": "mcollina/pi-self-learning",
+                  "url": "https://github.com/mcollina/pi-self-learning"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "A month's worth of captured corrections shows you your most common failure modes with this agent. The top 3 almost always belong in CLAUDE.md."
+            },
+            {
+              "id": "l7-pi-learning-commit",
+              "text": "Commit the resulting `CORE.md` to `ai-kit/memory/`",
+              "links": [
+                {
+                  "label": "mcollina/pi-self-learning",
+                  "url": "https://github.com/mcollina/pi-self-learning"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "CORE.md committed to your repo travels to every machine. Without this step, the memory stays on one machine and is gone after a wipe."
+            },
+            {
+              "id": "l7-mem0-setup",
+              "text": "Set up mem0 cloud and store the key in `.env` — works via MCP for all three tools",
+              "label": "Set up mem0 for cross-session memory",
+              "detail": "Two paths:\n\n**Cloud (easiest):** Free tier gives 10K memories and 1K retrieval calls/month. API key required. The official MCP at mcp.mem0.ai is cloud-only. Graph memory (knowledge graph relationships between memories) is Pro-only ($249/mo) in cloud.\n\n**Local (no API key, no Docker):** Install mem0ai + Ollama. Uses SQLite for history, local Qdrant or ChromaDB for vectors, and Ollama for LLM/embeddings. Graph memory is free in the local OSS version. Caveat: the default Qdrant path (/tmp/qdrant) is not persistent across reboots — configure a stable path explicitly. The official MCP does not support local; use community alternative github.com/Hroerkr/mem0mcp.",
+              "code": {
+                "lang": "bash",
+                "content": "# Cloud path\n# 1. Sign up at app.mem0.ai, get API key\n# 2. Add to .env: MEM0_API_KEY=m0-...\n# 3. Add MCP:\nnpx mcp-add --name mem0-mcp --type http --url \"https://mcp.mem0.ai/mcp\"\n\n# Local path (fully offline, no API keys)\npip install mem0ai ollama\n# Pull Ollama models:\nollama pull llama3.1\nollama pull nomic-embed-text\n# Then configure mem0 with Ollama + local Qdrant path (not /tmp)"
+              },
+              "links": [
+                {
+                  "label": "app.mem0.ai (sign up)",
+                  "url": "https://app.mem0.ai/"
+                },
+                {
+                  "label": "Self-hosting guide",
+                  "url": "https://mem0.ai/blog/self-host-mem0-docker"
+                },
+                {
+                  "label": "Local + Ollama cookbook",
+                  "url": "https://docs.mem0.ai/cookbooks/companions/local-companion-ollama"
+                },
+                {
+                  "label": "Platform vs OSS comparison",
+                  "url": "https://docs.mem0.ai/platform/platform-vs-oss"
+                },
+                {
+                  "label": "Community local MCP",
+                  "url": "https://github.com/Hroerkr/mem0mcp"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "pi-self-learning gives you distilled lessons. mem0 gives you raw context retrieval — 'what did I decide about the auth architecture last month?' Combining both covers the full memory problem."
+            },
+            {
+              "id": "l7-mem0-save-habit",
+              "text": "Habit: at session end, tell the agent \"Save key decisions from this session to memory\"",
+              "tools": [
+                "all"
+              ],
+              "why": "mem0 doesn't save automatically unless instructed. This prompt at the end of a session is the trigger that makes the memory layer useful. Without it, sessions remain isolated."
+            },
+            {
+              "id": "l7-mem0-load-habit",
+              "text": "Habit: at session start on a returning topic, tell the agent \"Check memory for context on [topic]\"",
+              "tools": [
+                "all"
+              ],
+              "why": "Memory that's stored but never retrieved is worthless. This prompt at the start of a relevant session is what makes past context actually influence the current one."
+            },
+            {
+              "id": "l7-copilot-gemini-memory",
+              "text": "Without pi-self-learning, mem0 + manually maintained context files are the primary memory mechanism",
+              "links": [
+                {
+                  "label": "mem0 OSS overview",
+                  "url": "https://docs.mem0.ai/open-source/overview"
+                }
+              ],
+              "tools": [
+                "gemini",
+                "copilot"
+              ],
+              "why": "Without an automatic capture hook, memory must be maintained manually. This item is the acknowledgment that the discipline of updating context files after each session is the substitute for automation."
+            },
+            {
+              "id": "l7-memory-verify",
+              "text": "After two weeks: ask the agent \"what do I usually prefer for X?\" — it should answer from memory",
+              "tools": [
+                "all"
+              ],
+              "why": "Verification confirms the memory layer is actually working — not just installed. If the agent can't answer 'what do I usually prefer for X?' after two weeks, something in the pipeline is broken."
+            }
+          ]
+        },
+        {
+          "id": "level-7-sandbox",
+          "title": "Sandbox Safety",
+          "items": [
+            {
+              "id": "l7-jai-install",
+              "text": "Install jai (Linux): build from source or AUR — lightweight copy-on-write sandbox for agents",
+              "label": "Install jai — lightweight copy-on-write sandbox for agents (Linux)",
+              "code": {
+                "lang": "bash",
+                "content": "# Arch (AUR)\nyay -S jai\n\n# From source\ngit clone https://github.com/stanford-scs/jai.git\ncd jai && ./autogen.sh && ./configure && make && sudo make install\njai --init"
+              },
+              "links": [
+                {
+                  "label": "jai.scs.stanford.edu",
+                  "url": "https://jai.scs.stanford.edu/"
+                },
+                {
+                  "label": "stanford-scs/jai",
+                  "url": "https://github.com/stanford-scs/jai"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "Real incidents motivate jai — agents running rm -rf, overwriting uncommitted work, making destructive changes in the wrong directory. A sandbox contains the blast radius before it becomes a real loss."
+            },
+            {
+              "id": "l7-jai-new-skill",
+              "text": "Run `jai claude` before testing any new skill or hook for the first time",
+              "label": "Run Claude inside the jai sandbox when testing new skills or hooks",
+              "code": {
+                "lang": "bash",
+                "content": "jai claude"
+              },
+              "links": [
+                {
+                  "label": "jai.scs.stanford.edu",
+                  "url": "https://jai.scs.stanford.edu/"
+                },
+                {
+                  "label": "stanford-scs/jai",
+                  "url": "https://github.com/stanford-scs/jai"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "A new skill runs arbitrary shell commands. Running it unsandboxed the first time is accepting unknown risk. jai casual mode is a 10-second safety wrapper with no overhead."
+            },
+            {
+              "id": "l7-jai-strict",
+              "text": "Use `jai --mode strict` before delegating any long autonomous task",
+              "label": "Use strict jai mode before delegating long autonomous tasks",
+              "code": {
+                "lang": "bash",
+                "content": "jai --mode strict claude"
+              },
+              "links": [
+                {
+                  "label": "jai.scs.stanford.edu",
+                  "url": "https://jai.scs.stanford.edu/"
+                },
+                {
+                  "label": "stanford-scs/jai",
+                  "url": "https://github.com/stanford-scs/jai"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "Long autonomous tasks accumulate risk — the agent makes many decisions without review. Strict mode means even if something goes wrong deep in the task, your actual home directory is unaffected."
+            },
+            {
+              "id": "l7-worktree-sandbox",
+              "text": "Use git worktrees as a manual blast-radius limiter when no dedicated sandbox exists",
+              "tools": [
+                "gemini",
+                "copilot"
+              ],
+              "why": "Without jai, a git worktree is the next best isolation. A broken implementation in an isolated worktree cannot contaminate main, and the worktree can be deleted without consequence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "level-8",
+      "number": "8",
+      "title": "Remote Setup",
+      "goal": "An always-on agent server reachable from anywhere. No laptop dependency.",
+      "sections": [
+        {
+          "id": "level-8-main",
+          "title": null,
+          "items": [
+            {
+              "id": "l8-provision",
+              "text": "Provision a Hetzner CX22 (~€4/month) with Ubuntu 24.04",
+              "tools": [
+                "all"
+              ],
+              "why": "A €4/month server is the cost of one coffee. The return is an always-on agent that can run multi-hour tasks while you sleep, accessible from any device, with no laptop dependency."
+            },
+            {
+              "id": "l8-harden",
+              "text": "Harden the server: create `dev` user, copy SSH key, disable password auth",
+              "tools": [
+                "all"
+              ],
+              "why": "A default Ubuntu install with password auth enabled is a credential stuffing target within hours. These three hardening steps eliminate the most common attack vectors before you put API keys on the machine."
+            },
+            {
+              "id": "l8-opencode",
+              "text": "Install Node.js 22 via nvm; install opencode: `npm install -g opencode-ai`",
+              "label": "Install Node.js 22 and OpenCode on the server",
+              "code": {
+                "lang": "bash",
+                "content": "# Install nvm\ncurl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash\nnvm install 22 && nvm use 22\n\n# Install opencode\nnpm install -g opencode-ai"
+              },
+              "links": [
+                {
+                  "label": "sst/opencode",
+                  "url": "https://github.com/sst/opencode"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "OpenCode runs on any model provider — Claude, Gemini, local Ollama models. Installing it on the server makes the server model-agnostic, so switching providers doesn't require reprovisioning."
+            },
+            {
+              "id": "l8-env",
+              "text": "Create `/home/dev/.env` with API keys for Claude, Gemini, and any others",
+              "tools": [
+                "all"
+              ],
+              "why": "Keys in the environment file are readable only by the dev user. This is more secure than passing them as arguments or hardcoding them in config, and simpler than a secrets manager for a personal server."
+            },
+            {
+              "id": "l8-tmux",
+              "text": "Start a persistent tmux session: `tmux new-session -s main`",
+              "label": "Start a persistent tmux session",
+              "code": {
+                "lang": "bash",
+                "content": "tmux new-session -s main\n# Detach: Ctrl+B D\n# Reconnect: tmux attach -t main"
+              },
+              "tools": [
+                "all"
+              ],
+              "why": "Without tmux, an SSH disconnect kills every running agent. Persistent sessions mean you can start a 3-hour research task, close your laptop, and reconnect hours later to review the results."
+            },
+            {
+              "id": "l8-systemd",
+              "text": "Write and enable a systemd service for headless OpenCode on port 3000",
+              "label": "Set up a systemd service for headless OpenCode",
+              "code": {
+                "lang": "ini",
+                "content": "[Unit]\nDescription=OpenCode AI Agent\nAfter=network.target\n\n[Service]\nType=simple\nUser=dev\nWorkingDirectory=/home/dev/projects\nEnvironmentFile=/home/dev/.env\nExecStart=/usr/local/bin/opencode --headless --port 3000\nRestart=on-failure\n\n[Install]\nWantedBy=multi-user.target"
+              },
+              "tools": [
+                "all"
+              ],
+              "why": "Headless mode with systemd means the agent restarts automatically after a server reboot, without manual SSH intervention. This is what makes the server genuinely always-on rather than on-until-the-next-restart."
+            },
+            {
+              "id": "l8-aikit-clone",
+              "text": "Clone your ai-kit repo and run `bash tools/setup.sh` on the server",
+              "tools": [
+                "all"
+              ],
+              "why": "Your skills, CLAUDE.md, and MCP config on the server should be identical to your local setup. Cloning ai-kit and running setup.sh on the server makes this a one-command operation."
+            },
+            {
+              "id": "l8-tailscale",
+              "text": "Install Tailscale for private access: `curl -fsSL https://tailscale.com/install.sh | sh`",
+              "label": "Install Tailscale for private SSH access from any device",
+              "code": {
+                "lang": "bash",
+                "content": "curl -fsSL https://tailscale.com/install.sh | sh\ntailscale up"
+              },
+              "tools": [
+                "all"
+              ],
+              "why": "A public-facing SSH port is a credential brute-force target. Tailscale puts the server on a private network — only devices you own can connect, with no firewall rules to maintain."
+            },
+            {
+              "id": "l8-scripts",
+              "text": "Write `tools/setup-remote.sh` and `tools/update-remote.sh` in ai-kit",
+              "tools": [
+                "all"
+              ],
+              "why": "New machines and server reprovisioning happen. Having setup-remote.sh and update-remote.sh in the repo means future setup is a single command, not a reconstruction from memory."
+            },
+            {
+              "id": "l8-milestone",
+              "text": "Milestone: kick off a long background task from your phone via SSH",
+              "tools": [
+                "all"
+              ],
+              "why": "Kicking off a task from your phone proves the setup actually works end-to-end: SSH from a different device, persistent session, agent running independently. Until you do this, you have a server — not an autonomous agent."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "level-9",
+      "number": "9",
+      "title": "Parallel Agents",
+      "goal": "Multiple agents working on independent tasks simultaneously.",
+      "sections": [
+        {
+          "id": "level-9-main",
+          "title": null,
+          "items": [
+            {
+              "id": "l9-agent-teams",
+              "text": "Enable agent teams in settings: `\"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\": true`",
+              "label": "Enable experimental agent teams in Claude Code settings",
+              "code": {
+                "lang": "json",
+                "content": "{ \"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\": true }"
+              },
+              "links": [
+                {
+                  "label": "Claude Code agent teams docs",
+                  "url": "https://docs.anthropic.com/en/docs/claude-code/agent-teams"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "Single-agent sessions serialize everything. Agent teams break the serialization — independent tasks run in parallel, and the total wall-clock time for a multi-task sprint drops proportionally."
+            },
+            {
+              "id": "l9-superset",
+              "text": "Download Superset and run 2 agents on genuinely independent tasks",
+              "links": [
+                {
+                  "label": "superset-sh/superset",
+                  "url": "https://github.com/superset-sh/superset"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "Superset handles the orchestration overhead — worktree creation, agent coordination, diff viewing — that makes parallel agents practical rather than just theoretically possible."
+            },
+            {
+              "id": "l9-fd-init",
+              "text": "Run `/fd-init`, write one real FD spec for your next task instead of prompting",
+              "links": [
+                {
+                  "label": "Manuel Schipper: How I run 4–8 parallel coding agents",
+                  "url": "https://schipper.ai/posts/parallel-coding-agents/"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "Prompting for a complex feature produces a complex context that grows until attention degrades. The FD system uses a written spec instead — the agent works from a document, not from conversation history, which scales."
+            },
+            {
+              "id": "l9-fd-deep",
+              "text": "Run `/fd-deep` (4 parallel Opus agents) on a complex task",
+              "links": [
+                {
+                  "label": "Manuel Schipper: How I run 4–8 parallel coding agents",
+                  "url": "https://schipper.ai/posts/parallel-coding-agents/"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "Four parallel Opus agents on a hard problem produce a solution that reflects four independent lines of reasoning, then converges. The quality is qualitatively different from a single agent working the same problem serially."
+            },
+            {
+              "id": "l9-dispatch",
+              "text": "Install the Dispatch skill for orchestrator-pattern without extra tooling",
+              "links": [
+                {
+                  "label": "bassimeledath/dispatch",
+                  "url": "https://github.com/bassimeledath/dispatch"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "The Dispatch skill gives the orchestrator pattern without any additional tooling — the skill itself handles task decomposition, parallel delegation, and result aggregation from within a single session."
+            },
+            {
+              "id": "l9-multi-model",
+              "text": "Practice multi-model dispatch: one model for implementation, a different session/model for review",
+              "links": [
+                {
+                  "label": "8 Levels of Agentic Engineering",
+                  "url": "https://www.bassimeledath.com/blog/levels-of-agentic-engineering"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "Different models have measurably different strengths. Routing implementation to the model with the best reasoning and review to the model with the best error-finding produces better combined output than using one model for both."
+            },
+            {
+              "id": "l9-ceiling",
+              "text": "Observe the practical ceiling: coordination overhead exceeds parallelism gain above 4–6 agents",
+              "tools": [
+                "all"
+              ],
+              "why": "Every agent added beyond 4–6 adds coordination overhead that can exceed the parallelism gain. Knowing the ceiling prevents the mistake of assuming more agents always means faster output."
+            }
+          ]
+        },
+        {
+          "id": "level-9-deerflow",
+          "title": "Path A — Long-horizon tasks (DeerFlow)",
+          "items": [
+            {
+              "id": "l9-deerflow-deploy",
+              "text": "Deploy DeerFlow via Docker: `git clone && make config && docker compose up`",
+              "label": "Deploy DeerFlow via Docker",
+              "code": {
+                "lang": "bash",
+                "content": "git clone https://github.com/bytedance/deer-flow && cd deer-flow\nmake config    # generates config.yaml, fill in your model provider\ndocker compose up"
+              },
+              "links": [
+                {
+                  "label": "bytedance/deer-flow",
+                  "url": "https://github.com/bytedance/deer-flow"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "DeerFlow handles the orchestration layer so you don't have to — sub-agent spawning, context scoping, result synthesis. Deploying it once gives you a long-horizon research and execution capability on demand."
+            },
+            {
+              "id": "l9-deerflow-task",
+              "text": "Delegate a research task that would take 30 minutes manually",
+              "links": [
+                {
+                  "label": "bytedance/deer-flow",
+                  "url": "https://github.com/bytedance/deer-flow"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "A 30-minute task you'd do manually is the right calibration — concrete enough to evaluate quality, long enough to see the multi-agent orchestration working."
+            },
+            {
+              "id": "l9-deerflow-milestone",
+              "text": "Milestone: use the DeerFlow output directly without rewriting it",
+              "links": [
+                {
+                  "label": "bytedance/deer-flow",
+                  "url": "https://github.com/bytedance/deer-flow"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "Using the output without rewriting it is the signal that DeerFlow is producing real value, not just activity. If you rewrite everything, the bottleneck is still you."
+            }
+          ]
+        },
+        {
+          "id": "level-9-hermes",
+          "title": "Path B — Persistent personal agent (Hermes)",
+          "items": [
+            {
+              "id": "l9-hermes-install",
+              "text": "Install Hermes Agent via the install script",
+              "label": "Install Hermes Agent",
+              "code": {
+                "lang": "bash",
+                "content": "curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash\nsource ~/.bashrc\nhermes setup"
+              },
+              "links": [
+                {
+                  "label": "NousResearch/hermes-agent",
+                  "url": "https://github.com/NousResearch/hermes-agent"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "Hermes builds a model of your preferences across sessions. The learning loop only has value if it runs for long enough to accumulate meaningful signal — installing it is the prerequisite."
+            },
+            {
+              "id": "l9-hermes-connect",
+              "text": "Connect to one messaging platform (Telegram is simplest)",
+              "links": [
+                {
+                  "label": "NousResearch/hermes-agent",
+                  "url": "https://github.com/NousResearch/hermes-agent"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "A messaging gateway means you can delegate to Hermes from your phone, get results in Telegram, and never need to open a terminal. The channel is what makes it a daily driver rather than a dev tool."
+            },
+            {
+              "id": "l9-hermes-sessions",
+              "text": "Run for 10+ sessions; check the skill stocktake",
+              "links": [
+                {
+                  "label": "NousResearch/hermes-agent",
+                  "url": "https://github.com/NousResearch/hermes-agent"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "10 sessions is the minimum before the skill accumulation becomes visible. The first few sessions feel like a regular agent — the difference emerges with repeated use."
+            },
+            {
+              "id": "l9-hermes-milestone",
+              "text": "Milestone: Hermes correctly anticipates a preference you never explicitly stated",
+              "links": [
+                {
+                  "label": "NousResearch/hermes-agent",
+                  "url": "https://github.com/NousResearch/hermes-agent"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "A correctly anticipated unstated preference is the proof that the agent model is working — it extracted a pattern from your behavior that you never explicitly stated."
+            }
+          ]
+        },
+        {
+          "id": "level-9-openswe",
+          "title": "Path C — Team-scale async agent (Open SWE)",
+          "items": [
+            {
+              "id": "l9-openswe-prereqs",
+              "text": "Prerequisites: shared GitHub repo, Slack, Linear",
+              "tools": [
+                "all"
+              ],
+              "why": "Open SWE is not a tool you install in an afternoon — it's infrastructure. Confirming the prerequisites exist before starting prevents a half-deployed system."
+            },
+            {
+              "id": "l9-openswe-deploy",
+              "text": "Deploy Open SWE with LangGraph Cloud and a sandbox provider (Modal)",
+              "links": [
+                {
+                  "label": "langchain-ai/open-swe",
+                  "url": "https://github.com/langchain-ai/open-swe"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "The deployment step is where most teams stall. Modal for the sandbox and LangGraph Cloud for orchestration are both services you need accounts for. Plan a day for initial setup."
+            },
+            {
+              "id": "l9-openswe-task",
+              "text": "File a Linear issue, comment `@openswe`",
+              "links": [
+                {
+                  "label": "langchain-ai/open-swe",
+                  "url": "https://github.com/langchain-ai/open-swe"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "The first real issue is the proof of concept. Seeing the agent work asynchronously — you file an issue, go do other things, come back to a draft PR — demonstrates the async value proposition concretely."
+            },
+            {
+              "id": "l9-openswe-milestone",
+              "text": "Milestone: agent opens a meaningful draft PR requiring minimal rework",
+              "links": [
+                {
+                  "label": "langchain-ai/open-swe",
+                  "url": "https://github.com/langchain-ai/open-swe"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "A meaningful draft PR requiring minimal rework means the agent understood the requirement, implemented it correctly, and handled edge cases. This is the bar that distinguishes a useful async agent from an expensive autocomplete."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "appendix-antipatterns",
+      "number": "✓",
+      "title": "Anti-Patterns Checklist",
+      "goal": "Review periodically. These are the failure modes.",
+      "type": "appendix",
+      "sections": [
+        {
+          "id": "appendix-antipatterns-main",
+          "title": null,
+          "items": [
+            {
+              "id": "ap-comprehension-debt",
+              "text": "Am I shipping AI-generated code I don't understand? (comprehension debt)",
+              "tools": [
+                "all"
+              ],
+              "why": "Comprehension debt is different from technical debt — it breeds false confidence. You think you understand the system because it works, but when it breaks you have no mental model to debug from."
+            },
+            {
+              "id": "ap-context-overload",
+              "text": "Is my context file over 100 lines? Is my MCP list longer than sessions need?",
+              "tools": [
+                "all"
+              ],
+              "why": "Every token in your context file fights for attention against every other token. The longer it gets, the less any individual rule is weighted. Density beats length every time."
+            },
+            {
+              "id": "ap-same-session-review",
+              "text": "Am I using the same session to implement and review?",
+              "tools": [
+                "all"
+              ],
+              "why": "The session that implemented the code rationalized every decision it made. A fresh context — same model, new session — will find issues that the implementing session had every incentive to overlook."
+            },
+            {
+              "id": "ap-override-rate",
+              "text": "Is my human override rate trending toward zero without tracking why?",
+              "tools": [
+                "all"
+              ],
+              "why": "Zero overrides sounds like AI success. It's often AI capture — the humans stopped checking. What matters is not the rate but the reason. Are you not overriding because everything is correct, or because you stopped looking?"
+            },
+            {
+              "id": "ap-vibe-coding",
+              "text": "Am I vibe-coding without maintaining a mental model of the system?",
+              "tools": [
+                "all"
+              ],
+              "why": "Mo Bitar vibe-coded for two years and went back to writing by hand. The long-term costs — inability to debug, loss of system intuition, increasing rework — emerge slowly and are expensive to reverse."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

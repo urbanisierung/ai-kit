@@ -1,0 +1,61 @@
+---
+import ChecklistItem from './ChecklistItem.astro';
+
+interface Item {
+  id: string;
+  text: string;
+  tools: string[];
+  optional?: boolean;
+  note?: string;
+}
+
+interface Section {
+  id: string;
+  title: string | null;
+  items: Item[];
+}
+
+interface Level {
+  id: string;
+  number: string;
+  title: string;
+  goal: string;
+  type?: string;
+  sections: Section[];
+}
+
+interface Props { level: Level }
+const { level } = Astro.props;
+
+const totalItems = level.sections.flatMap(s => s.items).length;
+---
+<section class="level" id={level.id} aria-labelledby={`${level.id}-title`}>
+  <header class="level-header">
+    <div class="level-header__meta">
+      <span class="level-eyebrow">
+        {level.type === 'appendix' ? 'Reference' : `Level ${level.number}`}
+      </span>
+      <h2 class="level-title" id={`${level.id}-title`}>{level.title}</h2>
+      <p class="level-goal">{level.goal}</p>
+    </div>
+    <div class="level-mini-progress" aria-label={`0 of ${totalItems} items completed`}>
+      <div class="level-mini-track" aria-hidden="true">
+        <div class="level-mini-fill"></div>
+      </div>
+      <span class="level-mini-label">0 / {totalItems}</span>
+    </div>
+  </header>
+
+  {level.sections.map(section => (
+    <div class="level-section">
+      {section.title && (
+        <div class="level-section-title">{section.title}</div>
+      )}
+      <ul class="checklist" role="list">
+        {section.items.map(item => (
+          <ChecklistItem item={item} />
+        ))}
+      </ul>
+    </div>
+  ))}
+</section>

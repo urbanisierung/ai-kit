@@ -1,0 +1,626 @@
+---
+import roadmap from '../../../data/roadmap.json';
+
+const levelColors: Record<string, string> = {
+  '0': '#475569', '1': '#2563EB', '2': '#059669',
+  '3': '#7C3AED', '4': '#0891B2', '5': '#D97706',
+  '6': '#EA580C', '7': '#BE185D', '8': '#BE123C', '9': '#7C3AED',
+};
+
+const mainLevels = roadmap.levels.filter(l => l.number !== '✓');
+const totalItems = roadmap.levels.flatMap(l => l.sections.flatMap(s => s.items)).length;
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Champion Roadmap — Master AI Coding Agents</title>
+  <meta name="description" content="A structured 10-level path from first setup to parallel agent teams. Covers Claude Code, Gemini CLI, and GitHub Copilot." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --amber: #D97706;
+      --amber-light: #F59E0B;
+      --amber-pale: #FDE68A;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: #0A0908;
+      color: #E7E3DE;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 52px;
+      background: rgba(10,9,8,0.75);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #E7E3DE;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+    }
+    .nav-logo svg { flex-shrink: 0; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-link {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      color: #A8A29E;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-link:hover { color: #E7E3DE; background: rgba(255,255,255,0.06); }
+
+    .nav-cta {
+      padding: 7px 16px;
+      border-radius: 7px;
+      background: var(--amber);
+      color: #0A0908;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 0.15s, transform 0.1s;
+      letter-spacing: -0.01em;
+    }
+    .nav-cta:hover { background: var(--amber-light); transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 100px 24px 80px;
+      overflow: hidden;
+    }
+
+    /* Dot grid */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.045) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    /* Amber glow */
+    .hero-glow {
+      position: absolute;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(217,119,6,0.22) 0%, rgba(217,119,6,0.05) 45%, transparent 70%);
+      pointer-events: none;
+      animation: glow-breathe 6s ease-in-out infinite;
+    }
+
+    @keyframes glow-breathe {
+      0%, 100% { opacity: 0.85; transform: translateX(-50%) scaleY(1); }
+      50% { opacity: 1; transform: translateX(-50%) scaleY(1.08); }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 840px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      border-radius: 100px;
+      border: 1px solid rgba(217,119,6,0.35);
+      background: rgba(217,119,6,0.08);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #F59E0B;
+      margin-bottom: 36px;
+      animation: fade-up 0.6s ease both;
+    }
+
+    .hero-headline {
+      font-size: clamp(3rem, 7vw + 1rem, 6.5rem);
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -0.035em;
+      color: #F5F4F2;
+      margin-bottom: 28px;
+      animation: fade-up 0.6s 0.1s ease both;
+    }
+
+    .hero-headline__grad {
+      background: linear-gradient(135deg, #F59E0B 0%, #FDE68A 55%, #FFF9E6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 1.5vw + 0.5rem, 1.25rem);
+      color: #A8A29E;
+      max-width: 600px;
+      margin: 0 auto 40px;
+      line-height: 1.65;
+      animation: fade-up 0.6s 0.2s ease both;
+    }
+
+    .hero-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 44px;
+      animation: fade-up 0.6s 0.3s ease both;
+    }
+
+    .stat {
+      font-size: 12px;
+      font-weight: 600;
+      color: #78716C;
+      letter-spacing: 0.02em;
+    }
+
+    .stat-sep { color: #3C3836; font-size: 14px; }
+
+    .hero-tools {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .tool-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .tool-badge--claude  { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #A78BFA; }
+    .tool-badge--gemini  { background: rgba(3,105,161,0.15);  border: 1px solid rgba(3,105,161,0.3);  color: #38BDF8; }
+    .tool-badge--copilot { background: rgba(21,128,61,0.15);  border: 1px solid rgba(21,128,61,0.3);  color: #4ADE80; }
+
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      animation: fade-up 0.6s 0.35s ease both;
+    }
+
+    .cta-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      background: var(--amber);
+      color: #0A0908;
+      font-size: 15px;
+      font-weight: 800;
+      text-decoration: none;
+      letter-spacing: -0.01em;
+      transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+      box-shadow: 0 0 0 0 rgba(217,119,6,0);
+    }
+    .cta-primary:hover {
+      background: var(--amber-light);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(217,119,6,0.35);
+    }
+
+    .cta-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 24px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      color: #C8C3BC;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      letter-spacing: -0.01em;
+      transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    }
+    .cta-ghost:hover {
+      border-color: rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.07);
+      transform: translateY(-2px);
+      color: #E7E3DE;
+    }
+
+    /* Scroll cue */
+    .scroll-cue {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: #3C3836;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      animation: cue-bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes cue-bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* ── LEVELS SECTION ── */
+    .levels-section {
+      background: #0D0C0B;
+      padding: 100px 32px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .section-label {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: clamp(1.8rem, 3vw + 0.5rem, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #F5F4F2;
+      margin-bottom: 14px;
+    }
+
+    .section-sub {
+      text-align: center;
+      font-size: 15px;
+      color: #78716C;
+      max-width: 480px;
+      margin: 0 auto 60px;
+      line-height: 1.6;
+    }
+
+    .levels-grid {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 12px;
+    }
+
+    .level-card {
+      position: relative;
+      background: #131210;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 20px 22px;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: border-color 0.2s, transform 0.2s, background 0.2s;
+      overflow: hidden;
+    }
+
+    .level-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent-color);
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .level-card:hover {
+      border-color: rgba(255,255,255,0.13);
+      transform: translateY(-3px);
+      background: #181614;
+    }
+    .level-card:hover::before { opacity: 1; }
+
+    .level-card__num {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      opacity: 0.7;
+    }
+
+    .level-card__title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #E7E3DE;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+    }
+
+    .level-card__goal {
+      font-size: 12.5px;
+      color: #635F5B;
+      line-height: 1.5;
+    }
+
+    .level-card__count {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #3C3836;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── BOTTOM CTA ── */
+    .bottom-cta {
+      background: #0A0908;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding: 80px 32px;
+      text-align: center;
+    }
+
+    .bottom-cta__title {
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 800;
+      color: #F5F4F2;
+      letter-spacing: -0.03em;
+      margin-bottom: 14px;
+    }
+
+    .bottom-cta__sub {
+      font-size: 15px;
+      color: #78716C;
+      margin-bottom: 36px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #080706;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #57534E;
+      text-decoration: none;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-link {
+      font-size: 12px;
+      color: #44403C;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .footer-link:hover { color: #A8A29E; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      nav { padding: 0 16px; }
+      .nav-link { display: none; }
+      .levels-section { padding: 64px 16px; }
+      footer { padding: 24px 16px; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-logo">
+    <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
+      <path d="M16 2L20 12L30 16L20 20L16 30L12 20L2 16L12 12Z" fill="#D97706"/>
+    </svg>
+    AI Champion
+  </a>
+  <div class="nav-links">
+    <a href="#levels" class="nav-link">Levels</a>
+    <a href="/cheatsheet" class="nav-link">Cheatsheet</a>
+    <a href="https://github.com/urbanisierung/ai-kit" class="nav-link" target="_blank" rel="noopener">GitHub ↗</a>
+    <a href="/roadmap" class="nav-cta">Start Roadmap →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+        <path d="M5 0.5L6.2 3.7L9.5 5L6.2 6.3L5 9.5L3.8 6.3L0.5 5L3.8 3.7Z" fill="#F59E0B"/>
+      </svg>
+      Free & Open Source Learning Path
+    </div>
+
+    <h1 class="hero-headline">
+      Become an<br/>
+      <span class="hero-headline__grad">AI Coding<br/>Champion.</span>
+    </h1>
+
+    <p class="hero-sub">
+      A structured 10-level path from first setup to running parallel agent teams.
+      Stop guessing. Start building with intention.
+    </p>
+
+    <div class="hero-stats">
+      <span class="stat">10 Levels</span>
+      <span class="stat-sep">·</span>
+      <span class="stat">{totalItems} Actions</span>
+      <span class="stat-sep">·</span>
+      <span class="stat">Track Progress</span>
+      <span class="stat-sep">·</span>
+      <span class="stat">Always Free</span>
+    </div>
+
+    <div class="hero-tools">
+      <span class="tool-badge tool-badge--claude">Claude Code</span>
+      <span class="tool-badge tool-badge--gemini">Gemini CLI</span>
+      <span class="tool-badge tool-badge--copilot">GitHub Copilot</span>
+    </div>
+
+    <div style="margin-bottom: 44px;"></div>
+
+    <div class="hero-ctas">
+      <a href="/roadmap" class="cta-primary">
+        Start the Roadmap
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </a>
+      <a href="https://github.com/urbanisierung/ai-kit" class="cta-ghost" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+        View on GitHub
+      </a>
+    </div>
+  </div>
+
+  <div class="scroll-cue" aria-hidden="true">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+</section>
+
+<!-- LEVELS -->
+<section class="levels-section" id="levels">
+  <p class="section-label">The Path</p>
+  <h2 class="section-title">10 levels. Zero fluff.</h2>
+  <p class="section-sub">Every level builds on the last. Each one has clear actions, explanations, and commands — not just theory.</p>
+
+  <div class="levels-grid">
+    {mainLevels.map(level => {
+      const color = levelColors[level.number] ?? '#475569';
+      const count = level.sections.reduce((a, s) => a + s.items.length, 0);
+      return (
+        <a
+          href="/roadmap"
+          class="level-card"
+          style={`--accent-color: ${color};`}
+        >
+          <span class="level-card__num" style={`color: ${color};`}>Level {level.number}</span>
+          <span class="level-card__count">{count} actions</span>
+          <div class="level-card__title">{level.title}</div>
+          <div class="level-card__goal">{level.goal}</div>
+        </a>
+      );
+    })}
+  </div>
+</section>
+
+<!-- BOTTOM CTA -->
+<section class="bottom-cta">
+  <h2 class="bottom-cta__title">Ready to start?</h2>
+  <p class="bottom-cta__sub">Open the roadmap, tick off Level 0, and you're already ahead.</p>
+  <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+    <a href="/roadmap" class="cta-primary">
+      Open the Roadmap
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+        <polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </a>
+    <a href="/cheatsheet" class="cta-ghost">View Cheatsheet</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="/" class="footer-logo">
+    <svg width="16" height="16" viewBox="0 0 32 32" fill="none">
+      <path d="M16 2L20 12L30 16L20 20L16 30L12 20L2 16L12 12Z" fill="#D97706"/>
+    </svg>
+    AI Champion Roadmap
+  </a>
+  <div class="footer-links">
+    <a href="/roadmap" class="footer-link">Roadmap</a>
+    <a href="/cheatsheet" class="footer-link">Cheatsheet</a>
+    <a href="https://github.com/urbanisierung/ai-kit" class="footer-link" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</footer>
+
+</body>
+</html>

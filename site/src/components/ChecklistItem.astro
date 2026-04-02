@@ -1,0 +1,116 @@
+---
+interface CodeBlock {
+  lang: string;
+  content: string;
+}
+
+interface Link {
+  label: string;
+  url: string;
+}
+
+interface Item {
+  id: string;
+  text: string;
+  label?: string;
+  detail?: string | null;
+  code?: CodeBlock | null;
+  links?: Link[];
+  tools: string[];
+  optional?: boolean;
+  note?: string | null;
+  why?: string | null;
+}
+
+interface Props { item: Item }
+const { item } = Astro.props;
+
+// Convert markdown backtick code spans to <code> tags
+function renderText(text: string): string {
+  return text.replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+// Determine data-tools attribute and tag to show
+const isAll = item.tools.includes('all');
+const toolsAttr = isAll ? 'all' : item.tools.join(' ');
+
+// Build tag display
+function getTag(): { label: string; cls: string } | null {
+  if (isAll) return null;
+  if (item.tools.length === 1) {
+    const t = item.tools[0];
+    const labels: Record<string, string> = { claude: 'Claude', gemini: 'Gemini', copilot: 'Copilot' };
+    return { label: labels[t] || t, cls: `tool-tag--${t}` };
+  }
+  // Multi-tool
+  const labels: Record<string, string> = { claude: 'Claude', gemini: 'Gemini', copilot: 'Copilot' };
+  return { label: item.tools.map(t => labels[t] || t).join('+'), cls: 'tool-tag--multi' };
+}
+
+const tag = getTag();
+
+// Display label: prefer item.label, fall back to item.text
+const displayLabel = item.label ?? item.text;
+
+// Whether there is detail panel content
+const hasDetail = !!(item.detail || item.code || (item.links && item.links.length > 0));
+const detailId = `detail-${item.id}`;
+---
+<li class="checklist-item" data-tools={toolsAttr} data-hidden="false">
+  <div class="checklist-row">
+    <label class="checklist-label">
+      <span class="checklist-checkbox-wrap">
+        <input
+          type="checkbox"
+          class="checklist-input"
+          id={item.id}
+        />
+        <span class="checklist-box" aria-hidden="true"></span>
+      </span>
+      <span class="checklist-content">
+        <span class="checklist-text" set:html={renderText(displayLabel)}></span>
+        {tag && (
+          <span class={`tool-tag ${tag.cls}`}>{tag.label}</span>
+        )}
+        {item.optional && (
+          <span class="optional-badge">optional</span>
+        )}
+      </span>
+    </label>
+    {hasDetail && (
+      <button
+        class="expand-btn"
+        aria-expanded="false"
+        aria-controls={detailId}
+        aria-label="Show details"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+    )}
+  </div>
+  {item.why && (
+    <p class="item-why">{item.why}</p>
+  )}
+  {hasDetail && (
+    <div class="item-detail" id={detailId} hidden>
+      {item.detail && (
+        <p class="item-detail-prose">{item.detail}</p>
+      )}
+      {item.code && (
+        <div class="code-block" data-lang={item.code.lang}>
+          <button class="copy-btn" data-copy={item.code.content} aria-label="Copy code">Copy</button>
+          <pre><code>{item.code.content}</code></pre>
+        </div>
+      )}
+      {item.links && item.links.length > 0 && (
+        <div class="item-links">
+          {item.links.map(link => (
+            <a class="item-link" href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>
+          ))}
+        </div>
+      )}
+    </div>
+  )}
+</li>
