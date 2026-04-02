@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths: ["site/**", "data/**"]
+  workflow_dispatch:
 
 jobs:
   deploy:
