@@ -1,7 +1,10 @@
-# AI Champion — Becoming More Effective with Claude
+# AI Champion — Becoming More Effective with AI Coding Agents
 
 A personal learning plan built from 130+ weeklyfoo newsletter issues.
 Everything here has been sourced from real practitioner articles, not vendor docs.
+
+This guide covers three CLI-based agent tools: **Claude Code**, **GitHub Copilot CLI**, and **Gemini CLI**.
+Most concepts apply to all three. Where a tool, command, or capability is specific to one, it is labelled.
 
 ---
 
@@ -25,6 +28,32 @@ Before diving into tools, a map of where things go. From Bassim Eledath's
 > "Most of you should focus on Level 7. Level 8 is where the leverage eventually is, but not yet for day-to-day work."
 
 **Start at Level 4 and work up.** Level 3 (CLAUDE.md) you already have — the CLAUDE.md in this repo is a working example. Each higher level builds on the previous; jumping to parallel agents without a solid skills and MCP foundation creates coordination overhead without the leverage.
+
+---
+
+## Tool Coverage Reference
+
+How the three tools compare across the capabilities in this guide:
+
+| Capability | Claude Code | Gemini CLI | Copilot CLI |
+|---|---|---|---|
+| Context file | `CLAUDE.md` | `GEMINI.md` | `copilot-instructions.md` / `AGENTS.md` |
+| Skills (`SKILL.md`) | Yes — lazy-loaded | Via extensions | Via `.github/agents/*.md` |
+| MCP servers | Yes | Yes — via `settings.json` or extensions | Yes — VS Code settings only, not CLI-native |
+| Hooks / lifecycle events | Yes — `settings.json` hooks | Partial — `excludeTools` in extensions | No |
+| compound-engineering | Yes | Yes (`--to gemini`) | Yes (`--to copilot`) |
+| Superpowers plugin | Yes | Yes | No |
+| Everything Claude Code | Yes | Yes | No |
+| RTK token compression | Yes (`rtk init -g`) | Yes (`rtk init -g --gemini`) | Yes |
+| last30days skill | Yes | Yes | No |
+| pi-self-learning memory | Yes | No | No |
+| mem0 MCP memory | Yes | Yes | Via VS Code only |
+| claude-hud status bar | Yes | No | No |
+| Rudel analytics | Yes | No | No |
+| jai sandbox | Yes | No documented support | No documented support |
+| Agent teams (parallel) | Yes (experimental) | No (use DeerFlow/OpenCode) | No |
+
+**Bottom line:** Claude Code has the deepest tooling ecosystem. Gemini CLI has solid MCP and skills support and works with most of the cross-platform stack. Copilot CLI's extensibility is VS Code-centric — the CLI itself has no hook system, no plugin marketplace, and no native context visibility.
 
 ---
 
@@ -285,14 +314,32 @@ bash ~/github.com/urbanisierung/ai-kit/tools/setup.sh
 
 ---
 
-## LEVEL 3 — Context Engineering (CLAUDE.md)
+## LEVEL 3 — Context Engineering
 
-You already know this. The `CLAUDE.md` in this repo is a live example of the format.
+Every major agentic tool loads a context file at session start. The file teaches the agent your preferences, constraints, and project conventions — once, rather than on every prompt.
 
-Key things worth revisiting as your setup matures:
-- **Subdirectory CLAUDE.md** files are loaded only when Claude works in that subtree — useful in this monorepo
+| Tool | File | Location | Loading behavior |
+|---|---|---|---|
+| **Claude Code** | `CLAUDE.md` | Repo root, subdirectories, `~/.claude/CLAUDE.md` (global) | Hierarchical: root + subdirs loaded for relevant subtrees; global always loaded |
+| **Copilot CLI / VS Code** | `copilot-instructions.md` or `AGENTS.md` | `.github/copilot-instructions.md` or repo root | Loaded on every conversation, fully |
+| **Gemini CLI** | `GEMINI.md` | Repo root or `~/.gemini/GEMINI.md` (global) | Root file auto-discovered; global always loaded |
+
+`AGENTS.md` at repo root is an emerging open standard recognized by all four tools (Claude, Copilot, Gemini, Cursor). Writing one file gives all agents the same baseline.
+
+### Claude Code specifics
+- **Subdirectory CLAUDE.md** files are loaded only when Claude works in that subtree — useful in a monorepo
 - **The @imports system**: `See @docs/api-patterns.md for API conventions` keeps the main file lean
 - **The compounding pattern**: after each session where you correct Claude, add a rule. After 10 sessions, prune what hasn't fired. The goal is 100 lines max.
+
+### Copilot specifics
+- No lazy loading — the full file is sent on every message. Keep it tight.
+- Enable `AGENTS.md` in VS Code: `"chat.useAgentsMdFile": true` in settings
+- Agent profiles (`.github/agents/*.md`) create named agents that appear in the VS Code agent picker
+
+### Gemini CLI specifics
+- `GEMINI.md` at repo root is auto-discovered when `gemini` is run from that directory
+- `~/.gemini/GEMINI.md` is the global equivalent of Claude's `~/.claude/CLAUDE.md`
+- Global config: `~/.gemini/settings.json` — API keys, model selection, temperature
 
 **Sources:**
 - [The Complete Guide to CLAUDE.md](https://www.builder.io/blog/claude-md-guide) — Builder.io (weeklyfoo #120)
@@ -462,16 +509,19 @@ enforces a linear task workflow, compound-engineering focuses on making each cyc
 improve future cycles. The philosophy: 80% planning and review, 20% execution.
 
 **Install:**
+
+*Claude Code:*
 ```
 /plugin marketplace add EveryInc/compound-engineering-plugin
 /plugin install compound-engineering
 ```
 
-Other platforms:
+*Gemini CLI, Copilot, Cursor, and others:*
 ```bash
-bunx @every-env/compound-plugin install compound-engineering --to cursor
 bunx @every-env/compound-plugin install compound-engineering --to gemini
-# targets: cursor | gemini | codex | opencode | copilot | kiro | windsurf
+bunx @every-env/compound-plugin install compound-engineering --to copilot
+bunx @every-env/compound-plugin install compound-engineering --to cursor
+# all targets: cursor | gemini | codex | opencode | copilot | kiro | windsurf
 ```
 
 **Six commands:**
@@ -809,8 +859,10 @@ curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/instal
 # Install the hook for your agent
 rtk init -g                # Claude Code (default)
 rtk init -g --gemini       # Gemini CLI
-rtk init -g --codex        # Codex
+rtk init -g --codex        # Codex / Copilot
 ```
+
+RTK works across Claude Code, Gemini CLI, Copilot, Cursor, and Windsurf — it's one of the few tools with full coverage across all three tools in this guide.
 
 **Key commands:**
 ```bash
@@ -868,23 +920,62 @@ Tool/agent/todo lines are off by default — enable via `/claude-hud:configure`.
 
 ## LEVEL 6 — Hooks and Persistent Memory
 
-Hooks are shell commands that run automatically in response to Claude Code events
-(before/after tool calls, on session end, etc.).
+Hooks (or their equivalent) give the agent a feedback signal without waiting for human review.
+The three tools have very different capabilities here.
 
-### What people use hooks for
+| Tool | Mechanism | What you can do |
+|---|---|---|
+| **Claude Code** | `hooks` object in `settings.json` — arbitrary shell commands on lifecycle events (`PostToolUse`, `Stop`, etc.) | Run linters, tests, memory capture, security scans automatically after every tool call |
+| **Gemini CLI** | Extensions with `excludeTools` + bundled MCP servers | Block specific dangerous operations; bundle tools the agent can call explicitly — no arbitrary shell hooks |
+| **Copilot CLI** | **None** | No hook system exists at the CLI level. Compensate with git-level pre-commit hooks (`lefthook`, `husky`) and manually running linters before accepting output |
 
-**Backpressure (Level 6 pattern)**
+### Claude Code: hooks for backpressure
+
 Hooks that run type checks, tests, linters, and pre-commit validation automatically
-give agents a feedback signal — they can detect and correct mistakes without waiting
+give the agent a feedback signal — it can detect and correct mistakes without waiting
 for human review. "If you want autonomy, you need backpressure."
 
-**Session analytics (Rudel)**
+**Session analytics (Rudel)** — *Claude Code only*
 Hook fires on session end, uploads transcript to a dashboard:
 token usage, session duration, activity patterns, model usage breakdown.
 
 Setup: `npm install -g rudel && rudel login && rudel enable`
 
 ⚠️ Uploads full session transcripts including code and prompts. Use on appropriate projects only.
+
+### Gemini CLI: extensions as partial equivalent
+
+Gemini extensions (`~/.gemini/extensions/<name>/gemini-extension.json`) bundle MCP servers,
+custom instructions, and blocked tool lists. This is the closest Gemini has to hooks:
+
+```json
+{
+  "name": "my-dev-extension",
+  "version": "1.0.0",
+  "mcpServers": [{ "name": "lint-server", "command": "npx", "args": ["-y", "your-lint-mcp"] }],
+  "contextFileName": "GEMINI.md",
+  "excludeTools": ["run_shell_command(rm -rf)"]
+}
+```
+
+You can wrap a linter or test runner as an MCP server and bundle it in the extension,
+then instruct Gemini in `GEMINI.md` to call it after writing files. It's more explicit
+(Gemini calls the tool by choice) than Claude's automatic PostToolUse hooks, but it
+achieves a similar feedback loop.
+
+### Copilot CLI: git-level backpressure
+
+Copilot CLI has no hook system. The practical substitute is enforcing quality gates at
+the git layer rather than the agent layer:
+
+```bash
+# Example with lefthook (works regardless of which agent wrote the code)
+npm install -g @evilmartians/lefthook
+# lefthook.yml: pre-commit → run linter; commit-msg → validate format
+```
+
+The agent still gets no automatic feedback mid-session, but errors are caught before
+they can be committed.
 
 ### Persistent memory: three approaches
 
@@ -1476,7 +1567,7 @@ From [AI Tooling for Software Engineers in 2026](https://newsletter.pragmaticeng
 Unlike technical debt, it breeds false confidence. Ask "do I understand why this works?"
 before merge. — [Addy Osmani](https://addyosmani.com/blog/comprehension-debt/) (weeklyfoo #129)
 
-**Context overload** — too many MCP tools, too long a CLAUDE.md, too many rules.
+**Context overload** — too many MCP tools, too long a context file (CLAUDE.md / GEMINI.md / copilot-instructions.md), too many rules.
 Every token fights for its place. Information density is the name of the game.
 
 **Same model grading its own exam** — the implementing instance will gloss over its own errors.
@@ -1494,6 +1585,7 @@ The long-term costs emerge slowly. By the time they're visible, they're expensiv
 ## Suggested Learning Order
 
 Each week has a **theme**, **exact commands to run**, and **what you'll notice**.
+Steps marked **(Claude)**, **(Gemini)**, or **(Copilot)** are tool-specific. Everything else applies to all three.
 
 ---
 
@@ -1525,27 +1617,46 @@ of this plan has a home. New machines get everything in one `git clone && bash s
 
 ### Week 1 — Skills and Superpowers
 
-**Goal:** Claude gains new capabilities and learns to plan before coding.
+**Goal:** Your agent gains new capabilities and learns to plan before coding.
 
-**Step A — Install Superpowers (10 minutes):**
+**(Claude) Step A — Install Superpowers (10 minutes):**
 ```
 /plugin install superpowers@claude-plugins-official
 ```
 Pick any real task from your backlog. Watch what happens before any code appears.
 Let it run the full loop. Expect the first run to feel slow. The second run feels normal.
 
+**(Gemini) Step A equivalent — Install Superpowers for Gemini:**
+Superpowers is available for Gemini CLI via the extension mechanism. Check the
+[superpowers repo](https://github.com/obra/superpowers) for the Gemini install path.
+
+**(Copilot) Step A equivalent:**
+Superpowers is not available for Copilot CLI. Use compound-engineering instead:
+```bash
+bunx @every-env/compound-plugin install compound-engineering --to copilot
+```
+
 **Step B — Write your own first skill (30–60 minutes):**
 ```bash
-mkdir -p .claude/your-skill-name
-touch .claude/your-skill-name/SKILL.md
-```
-Write the frontmatter `description` first — that's the routing key.
-Then copy the skill to your ai-kit repo and symlink it back.
+# Claude Code
+mkdir -p .claude/your-skill-name && touch .claude/your-skill-name/SKILL.md
 
-**Step C — Browse skills.sh:**
+# Gemini CLI — place in your extension or at a skills path
+mkdir -p ~/.gemini/skills/your-skill-name && touch ~/.gemini/skills/your-skill-name/SKILL.md
+
+# Copilot — agent profiles in .github/agents/
+mkdir -p .github/agents && touch .github/agents/your-agent.md
+```
+Write the frontmatter `description` first — that's the routing key for Claude and Gemini.
+Commit everything to your ai-kit repo.
+
+**(Claude) Step C — Browse skills.sh:**
 Go to [skills.sh](https://skills.sh/). Install `skill-creator` first. Then 2–3 that match your workflow.
 
-**What you'll notice:** Claude's first response to a task changes from "I'll do X" to
+**(Copilot) Step C equivalent:**
+Browse [github/awesome-copilot](https://github.com/github/awesome-copilot) for community skills and agents.
+
+**What you'll notice:** Your agent's first response to a task changes from "I'll do X" to
 "Before I start: here's what I'm going to build and why."
 
 **Read:** [Agent Skills vs. Rules vs. Commands](https://www.builder.io/blog/agent-skills-rules-commands)
@@ -1554,30 +1665,38 @@ Go to [skills.sh](https://skills.sh/). Install `skill-creator` first. Then 2–3
 
 ### Week 2 — MCP and search
 
-**Goal:** Claude can reach external systems; you have working search in Claude sessions.
+**Goal:** Your agent can reach external systems; you have working search without pasting URLs.
 
 **Brave Search (5 minutes):**
 ```bash
-# Get a key at api.search.brave.com
+# Claude Code
 claude mcp add brave-search -e BRAVE_API_KEY=BSA_YOUR_KEY -- npx -y @modelcontextprotocol/server-brave-search
+
+# Gemini CLI — add to ~/.gemini/settings.json
+# { "mcpServers": { "brave-search": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-brave-search"], "env": { "BRAVE_API_KEY": "BSA_..." } } } }
+
+# Copilot — add to VS Code settings.json under "github.copilot.mcpServers"
+# (no CLI-native method; requires VS Code)
 ```
-Ask Claude to research something. It searches without you copying URLs in.
 
 **Grok API (10 minutes):**
 Sign up at [console.x.ai](https://console.x.ai). Opt into the data-sharing program for
 $150/month of free credits. Add the MCP from
 [github.com/merterbak/Grok-MCP](https://github.com/merterbak/Grok-MCP).
+The same MCP server definition works for all three tools; only the config file location differs.
 
 **DeepWiki (5 minutes):**
 ```json
 { "mcpServers": { "deepwiki": { "command": "npx", "args": ["-y", "@deepwiki/mcp"] } } }
 ```
-Ask: "Using DeepWiki, how does Astro handle content collections?"
+Add this block to `~/.claude/mcp.json` (Claude), `~/.gemini/settings.json` (Gemini),
+or VS Code settings (Copilot).
 
 **Store all keys in ai-kit:**
 ```bash
+# Commit the MCP config as a template with ${VAR_NAME} placeholders
 cp ~/.claude/mcp.json ~/github.com/urbanisierung/ai-kit/claude/mcp.json.template
-# Replace actual key values with ${VAR_NAME}
+# Replace actual key values with ${VAR_NAME}; setup.sh fills them in via envsubst
 ```
 
 **What you'll notice:** MCP has real context cost. Disable MCPs you aren't using
@@ -1589,12 +1708,16 @@ in the current session. This is not set-and-forget configuration.
 
 **Goal:** Sessions start with context from previous sessions.
 
-**pi-self-learning:**
+**(Claude) pi-self-learning — git-backed automatic memory:**
 ```bash
 npm install -g @pi-labs/cli
 pi install npm:pi-self-learning
 ```
 After one week, run `/learning-month`. Commit the resulting `CORE.md` to your ai-kit repo.
+
+**(Gemini / Copilot) No pi-self-learning equivalent.** Use mem0 (below) as the primary
+memory layer, and manually maintain your `GEMINI.md` / `copilot-instructions.md` with
+the lessons you'd otherwise capture automatically.
 
 **mem0 MCP (cloud, easiest):**
 ```bash
@@ -1617,21 +1740,25 @@ At the start of the next relevant session: "Check memory for context on [topic].
 **The one habit worth forming:**
 Before any non-trivial task, write one sentence starting with "because."
 
-**pi-self-learning after corrections:**
+**(Claude) pi-self-learning after corrections:**
 Every time you correct Claude, the hook captures it. After one week, run `/learning-month`.
 You'll see your most common corrections. The top 3 belong in CLAUDE.md immediately.
 
+**(Gemini / Copilot) Manual equivalent:**
+After each session, note the top correction you made and add it to your context file.
+One rule per session. Prune after 10 sessions. No automation — just discipline.
+
 **The power prompt experiment:**
 Adapt the Pandya example from the Prompting section to something real in this repo.
-Run it. You'll see parallel agents, CLAUDE.md updates, and a new skill appear — from one prompt.
+Run it. You'll see parallel agents, context file updates, and a new skill appear — from one prompt.
 
 ---
 
 ### Week 4b — Token management and observability
 
-**Goal:** Know exactly what your context window contains and stop burning tokens on noise.
+**Goal:** Know what your context window contains and stop burning tokens on noise.
 
-**Step A — Install claude-hud (5 minutes):**
+**(Claude) Step A — Install claude-hud (5 minutes):**
 ```
 /plugin marketplace add jarrodwatts/claude-hud
 /plugin install claude-hud
@@ -1641,16 +1768,23 @@ Run `/claude-hud:configure` and enable the agent and todo lines, not just the co
 Watch the context fill during Week 5's hooks session. The color shift from green to yellow
 to red is the signal to `/compact` or start fresh.
 
-**Step B — Install RTK (10 minutes):**
+**(Gemini / Copilot) No claude-hud equivalent.**
+Context visibility is not built into either tool's CLI. Compensate by keeping sessions
+short and scoped: one topic per session, use `/clear` (Gemini) or start a new chat when
+switching context. If token usage matters, measure with RTK (see below).
+
+**Step B — Install RTK (10 minutes) — all tools:**
 ```bash
 brew install rtk     # macOS
 # or: curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
 
-rtk init -g          # installs the hook for Claude Code
+rtk init -g                # Claude Code
+rtk init -g --gemini       # Gemini CLI
+rtk init -g --codex        # Copilot / Codex
 ```
 Run `rtk gain` at the end of your next session. The number is usually surprising.
 
-**Step C — Run /context:**
+**(Claude) Step C — Run /context:**
 Open a new Claude Code session. Run `/context` before typing anything.
 Note what percentage is already consumed. If it's over 15%, investigate:
 which MCPs are mounted? Is your CLAUDE.md over 100 lines?
@@ -1670,8 +1804,9 @@ You can see what's happening, and the agent isn't burning tokens on test output 
 
 ### Week 5 — Hooks and harness
 
-**Goal:** Claude detects its own errors without you pointing them out.
+**Goal:** Your agent detects its own errors without you pointing them out.
 
+**(Claude) PostToolUse hook:**
 ```json
 {
   "event": "PostToolUse",
@@ -1681,9 +1816,20 @@ You can see what's happening, and the agent isn't burning tokens on test output 
 After every file write, Claude sees the lint output and fixes errors immediately.
 This is backpressure — the faster feedback loop changes how the agent behaves.
 
+**(Gemini) Equivalent approach:**
+Wrap your linter as an MCP tool and bundle it in an extension. Instruct Gemini in `GEMINI.md`:
+"After writing or editing any source file, call the lint tool and fix any errors before proceeding."
+No automatic firing — Gemini calls it explicitly — but the effect is similar.
+
+**(Copilot) Equivalent approach:**
+No in-session hooks. Set up git-level pre-commit hooks (`lefthook` or `husky`) so quality gates
+fire before any agent output can be committed. Add the instruction to `copilot-instructions.md`:
+"Always run the linter and fix all errors before presenting code as complete."
+
 **Study Sentry's PR review skill:**
 [github.com/getsentry/skills](https://github.com/getsentry/skills) — one orchestrating skill
-→ multiple focused subagents → results aggregated. This is the pattern for anything complex.
+→ multiple focused subagents → results aggregated. This pattern works with any agent tool that
+supports subagent delegation (Claude Code, Gemini CLI with extensions).
 
 ---
 
