@@ -38,7 +38,12 @@ Items are tagged where support differs. Untagged items apply to all three tools.
   cp .env.example .env
   # Edit .env — fill in:
   # ANTHROPIC_API_KEY=sk-ant-...
-  # BRAVE_API_KEY=BSA_...
+  #
+  # Search — pick one or more:
+  # BRAVE_API_KEY=BSA_...    # paid only
+  # TAVILY_API_KEY=tvly-...  # free tier: 1K/month at tavily.com
+  # DuckDuckGo needs no API key
+  #
   # XAI_API_KEY=xai-...
   # MEM0_API_KEY=m0-...
   ```
@@ -252,19 +257,27 @@ Items are tagged where support differs. Untagged items apply to all three tools.
 ## Level 4 — MCP Servers
 > Goal: The agent can search the web and reach external systems. MCP context cost is managed.
 
-- [ ] Add Brave Search MCP (get key at api.search.brave.com)
+- [ ] Add a web search MCP
   > Without search, the agent works from training data alone — no awareness of libraries released after its cutoff, no ability to look up current documentation, no real-time context. Search is the single biggest capability upgrade per minute of setup time.
 
+  Three options, in order of cost: (1) DuckDuckGo — zero setup, no API key, completely free. (2) Tavily — register for a free API key, 1,000 searches/month free, AI-optimised results. (3) Brave Search — no free tier as of 2026, paid plans only.
+
   ```bash
-  # Claude Code
+  # Option 1 — DuckDuckGo (no API key)
+  claude mcp add duckduckgo -- npx -y duckduckgo-mcp-server
+  
+  # Option 2 — Tavily (free tier: 1K searches/month)
+  # Add TAVILY_API_KEY to .env, then:
+  claude mcp add tavily --transport http --url "https://mcp.tavily.com/mcp/?tavilyApiKey=YOUR_KEY"
+  
+  # Option 3 — Brave Search (paid only)
   claude mcp add brave-search -e BRAVE_API_KEY=BSA_YOUR_KEY -- npx -y @modelcontextprotocol/server-brave-search
   
-  # Gemini CLI — add to ~/.gemini/settings.json
-  # { "mcpServers": { "brave-search": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-brave-search"], "env": { "BRAVE_API_KEY": "BSA_..." } } } }
+  # Gemini CLI — add chosen option to ~/.gemini/settings.json mcpServers block
   ```
 
-  - [Get API key](https://api-dashboard.search.brave.com/register)
-  - [Brave Search API docs](https://brave.com/search/api/)
+  - [Tavily — get free API key](https://tavily.com)
+  - [Brave Search API (paid)](https://api-dashboard.search.brave.com/register)
 
 - [ ] Add DeepWiki MCP — no API key required
   > Pulling a library's docs into context manually is slow and consumes tokens. DeepWiki provides structured access to any open-source repo's documentation on demand, with no manual copying.
