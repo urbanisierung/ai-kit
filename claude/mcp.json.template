@@ -1,9 +1,20 @@
 {
   "mcpServers": {
     "brave-search": {
+      "_comment": "No free tier — paid plans only (https://api.search.brave.com)",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-brave-search"],
       "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" }
+    },
+    "duckduckgo": {
+      "_comment": "Free, no API key required",
+      "command": "npx",
+      "args": ["-y", "duckduckgo-mcp-server"]
+    },
+    "tavily": {
+      "_comment": "Free tier: 1,000 searches/month (https://tavily.com)",
+      "type": "http",
+      "url": "https://mcp.tavily.com/mcp/?tavilyApiKey=${TAVILY_API_KEY}"
     },
     "deepwiki": {
       "command": "npx",

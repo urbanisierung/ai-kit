@@ -59,7 +59,7 @@
               "why": "The setup script reads keys from `.env` and injects them into MCP configs via envsubst. Without this, none of the tools that require API access will connect.",
               "code": {
                 "lang": "bash",
-                "content": "cp .env.example .env\n# Edit .env — fill in:\n# ANTHROPIC_API_KEY=sk-ant-...\n# BRAVE_API_KEY=BSA_...\n# XAI_API_KEY=xai-...\n# MEM0_API_KEY=m0-..."
+                "content": "cp .env.example .env\n# Edit .env — fill in:\n# ANTHROPIC_API_KEY=sk-ant-...\n#\n# Search — pick one or more:\n# BRAVE_API_KEY=BSA_...    # paid only\n# TAVILY_API_KEY=tvly-...  # free tier: 1K/month at tavily.com\n# DuckDuckGo needs no API key\n#\n# XAI_API_KEY=xai-...\n# MEM0_API_KEY=m0-..."
               }
             },
             {
@@ -497,21 +497,22 @@
           "title": null,
           "items": [
             {
-              "id": "l4-brave-search",
-              "text": "Get a Brave Search API key; add the MCP for your primary tool",
-              "label": "Add Brave Search MCP (get key at api.search.brave.com)",
+              "id": "l4-search-pick",
+              "text": "Pick a web search MCP — DuckDuckGo (free, no key), Tavily (free tier, 1K/month), or Brave Search (paid only)",
+              "label": "Add a web search MCP",
+              "detail": "Three options, in order of cost: (1) DuckDuckGo — zero setup, no API key, completely free. (2) Tavily — register for a free API key, 1,000 searches/month free, AI-optimised results. (3) Brave Search — no free tier as of 2026, paid plans only. The `mcp.json.template` ships with all three — remove whichever you don't need from your personal repo's copy.",
               "code": {
                 "lang": "bash",
-                "content": "# Claude Code\nclaude mcp add brave-search -e BRAVE_API_KEY=BSA_YOUR_KEY -- npx -y @modelcontextprotocol/server-brave-search\n\n# Gemini CLI — add to ~/.gemini/settings.json\n# { \"mcpServers\": { \"brave-search\": { \"command\": \"npx\", \"args\": [\"-y\", \"@modelcontextprotocol/server-brave-search\"], \"env\": { \"BRAVE_API_KEY\": \"BSA_...\" } } } }"
+                "content": "# Option 1 — DuckDuckGo (no API key)\nclaude mcp add duckduckgo -- npx -y duckduckgo-mcp-server\n\n# Option 2 — Tavily (free tier: 1K searches/month)\n# Add TAVILY_API_KEY to .env, then:\nclaude mcp add tavily --transport http --url \"https://mcp.tavily.com/mcp/?tavilyApiKey=YOUR_KEY\"\n\n# Option 3 — Brave Search (paid only)\nclaude mcp add brave-search -e BRAVE_API_KEY=BSA_YOUR_KEY -- npx -y @modelcontextprotocol/server-brave-search\n\n# Gemini CLI — add chosen option to ~/.gemini/settings.json mcpServers block"
               },
               "links": [
                 {
-                  "label": "Get API key",
-                  "url": "https://api-dashboard.search.brave.com/register"
+                  "label": "Tavily — get free API key",
+                  "url": "https://tavily.com"
                 },
                 {
-                  "label": "Brave Search API docs",
-                  "url": "https://brave.com/search/api/"
+                  "label": "Brave Search API (paid)",
+                  "url": "https://api-dashboard.search.brave.com/register"
                 }
               ],
               "tools": [
