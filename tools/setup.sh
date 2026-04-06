@@ -6,9 +6,8 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 export AI_KIT_REPO="${AI_KIT_REPO:-$REPO}"
 
 echo "==> Linking Claude global config..."
-mkdir -p ~/.claude/skills
 ln -sf "$REPO/claude/CLAUDE.md.global" ~/.claude/CLAUDE.md
-ln -sf "$REPO/claude/skills" ~/.claude/skills
+ln -sfn "$REPO/claude/skills" ~/.claude/skills
 
 echo "==> Writing Claude configs from templates (keys from .env)..."
 if [[ -f "$REPO/.env" ]]; then

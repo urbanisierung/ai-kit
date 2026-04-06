@@ -288,10 +288,12 @@ Items are tagged where support differs. Untagged items apply to all three tools.
 
   - [DeepWiki MCP](https://mcp.deepwiki.com/)
 
-- [ ] Add Grok MCP for X/Twitter search (sign up at console.x.ai)
-  > For anything where X/Twitter signal matters — trending libraries, community sentiment, real-time debates — Grok has unique access. The $175/month free tier makes it effectively zero cost.
+- [ ] Add Grok MCP for X/Twitter search (sign up at console.x.ai) — paid, no ongoing free tier
+  > For anything where X/Twitter signal matters — trending libraries, community sentiment, real-time debates — Grok has unique access. The free tier ($25/month beta) ended Dec 2024; it is now a paid API. If X/Twitter search is not needed, Groq (console.groq.com) is a fully free alternative with fast inference and no credit card required.
 
-  Opt into the data-sharing program for $175/month of free credits.
+  No ongoing free tier as of Dec 2024. New accounts get a one-time $25 credit (30-day expiry).
+  A data-sharing program offers $150/month credits but requires $5 prior spend, is region-restricted
+  (no EU/UK/Iceland/Liechtenstein/Norway), and opt-in is permanent.
 
   ```bash
   # Get the MCP from github.com/merterbak/Grok-MCP
@@ -300,6 +302,7 @@ Items are tagged where support differs. Untagged items apply to all three tools.
 
   - [xAI Console (sign up)](https://console.x.ai)
   - [merterbak/Grok-MCP](https://github.com/merterbak/Grok-MCP)
+  - [Groq (free alternative for general inference)](https://console.groq.com)
 
 - [ ] Store all keys in `ai-kit/.env`; update `mcp.json.template` with `${VAR_NAME}` placeholders
   > Keys hardcoded in config files get committed to git. The template + envsubst pattern keeps keys out of version control while making configs reproducible across machines.

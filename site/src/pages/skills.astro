@@ -1,0 +1,726 @@
+---
+interface Command {
+  cmd: string;
+  what: string;
+  when: string;
+  tags: string[];
+}
+
+interface Plugin {
+  id: string;
+  name: string;
+  tagline: string;
+  color: string;
+  headerBg: string;
+  rowBg: string;
+  border: string;
+  install?: string;
+  commands: Command[];
+}
+
+const plugins: Plugin[] = [
+  {
+    id: 'superpowers',
+    name: 'Superpowers',
+    tagline: 'Complete agentic workflow — brainstorm → plan → implement → review → merge',
+    color: '#fff',
+    headerBg: '#7C3AED',
+    rowBg: '#110D22',
+    border: '#2E1A5C',
+    install: '/plugin install superpowers@claude-plugins-official',
+    commands: [
+      {
+        cmd: '/brainstorm',
+        what: 'Surfaces requirements gaps before any code is written',
+        when: 'Start here for any non-trivial feature — before touching code',
+        tags: ['planning'],
+      },
+      {
+        cmd: '/using-git-worktrees',
+        what: 'Sets up an isolated git worktree for the current feature',
+        when: 'Before starting implementation to keep main branch clean',
+        tags: ['git', 'isolation'],
+      },
+      {
+        cmd: '/subagent-driven-development',
+        what: 'Delegates subtasks to focused subagents',
+        when: 'When a task has clearly separable independent pieces',
+        tags: ['agents'],
+      },
+      {
+        cmd: '/test-driven-development',
+        what: 'Enforces RED → GREEN → REFACTOR — won\'t proceed until tests pass',
+        when: 'Any feature where correctness matters; pairs with /executing-plans',
+        tags: ['testing'],
+      },
+      {
+        cmd: '/systematic-debugging',
+        what: 'Structured failure diagnosis — reads the error, checks assumptions',
+        when: 'When a bug is not obvious from the first read',
+        tags: ['debugging'],
+      },
+      {
+        cmd: '/requesting-code-review',
+        what: 'Prepares work for human or agent review',
+        when: 'Before opening a PR or handing off to a reviewer',
+        tags: ['review'],
+      },
+      {
+        cmd: '/verification-before-completion',
+        what: 'Quality gate: checks the work meets the original plan',
+        when: 'Before marking any task done',
+        tags: ['quality'],
+      },
+    ],
+  },
+  {
+    id: 'compound',
+    name: 'compound-engineering-plugin',
+    tagline: '80% planning + review, 20% execution — each cycle improves the next',
+    color: '#fff',
+    headerBg: '#0E7490',
+    rowBg: '#07151C',
+    border: '#0E3D4F',
+    install: '/plugin marketplace add EveryInc/compound-engineering-plugin\n/plugin install compound-engineering',
+    commands: [
+      {
+        cmd: '/ce:ideate',
+        what: 'Discovers high-impact improvements through divergent ideation',
+        when: 'When you\'re not sure what to work on next; before /ce:plan',
+        tags: ['planning', 'ideation'],
+      },
+      {
+        cmd: '/ce:brainstorm',
+        what: 'Explores and clarifies requirements',
+        when: 'When the task is vague or has hidden complexity',
+        tags: ['planning'],
+      },
+      {
+        cmd: '/ce:plan',
+        what: 'Converts a feature request into a technical roadmap',
+        when: 'After requirements are clear; before any implementation',
+        tags: ['planning'],
+      },
+      {
+        cmd: '/ce:work',
+        what: 'Executes the plan with worktree isolation and task tracking',
+        when: 'After /ce:plan is approved — the actual implementation step',
+        tags: ['implementation', 'git'],
+      },
+      {
+        cmd: '/ce:review',
+        what: 'Multi-agent code review before merging',
+        when: 'After implementation is complete, before /ce:compound or PR',
+        tags: ['review', 'agents'],
+      },
+      {
+        cmd: '/ce:compound',
+        what: 'Extracts learnings and codifies them for future sessions',
+        when: 'After every completed task — this is the compounding step',
+        tags: ['memory', 'learning'],
+      },
+    ],
+  },
+  {
+    id: 'ecc',
+    name: 'Everything Claude Code',
+    tagline: '150+ skills, 70+ commands, hooks, AgentShield — comprehensive harness optimization',
+    color: '#fff',
+    headerBg: '#B45309',
+    rowBg: '#1A1106',
+    border: '#4A2E07',
+    install: 'curl -fsSL https://ecc.tools/install.sh | bash',
+    commands: [
+      {
+        cmd: '/harness-audit',
+        what: 'Scores your current Claude Code configuration',
+        when: 'First thing after install; whenever you change settings or hooks',
+        tags: ['setup', 'quality'],
+      },
+      {
+        cmd: '/skill-stocktake',
+        what: 'Shows which of the 150+ skills are relevant to your current stack',
+        when: 'After /harness-audit — narrows down what to actually use',
+        tags: ['setup'],
+      },
+      {
+        cmd: '/plan',
+        what: 'Structured multi-step planning with explicit deliverables',
+        when: 'For any task that spans more than one file or concept',
+        tags: ['planning'],
+      },
+      {
+        cmd: '/orchestrate',
+        what: 'Spawns and coordinates multiple subagents',
+        when: 'When a task has 3+ independent parallel workstreams',
+        tags: ['agents'],
+      },
+      {
+        cmd: '/multi-execute',
+        what: 'Runs multiple independent tasks in parallel',
+        when: 'Batch work — e.g. update tests across many files simultaneously',
+        tags: ['agents'],
+      },
+      {
+        cmd: '/learn',
+        what: 'Captures a pattern or lesson from the current session',
+        when: 'After solving a non-obvious problem worth remembering',
+        tags: ['memory', 'learning'],
+      },
+      {
+        cmd: '/learn-eval',
+        what: 'Evaluates and promotes a pending learning to permanent memory',
+        when: 'After /learn — before closing a session',
+        tags: ['memory'],
+      },
+      {
+        cmd: '/quality-gate',
+        what: 'Checks build, tests, lint, and types before considering a task done',
+        when: 'Before any commit or PR — replaces manual pre-commit checklist',
+        tags: ['quality', 'testing'],
+      },
+      {
+        cmd: '/model-route',
+        what: 'Routes the current task to the appropriate model tier',
+        when: 'For expensive tasks — routes heavy reasoning to Opus, fast tasks to Haiku',
+        tags: ['cost'],
+      },
+      {
+        cmd: '/resume-session',
+        what: 'Reloads context from the previous session summary',
+        when: 'At the start of any session continuing prior work',
+        tags: ['memory'],
+      },
+      {
+        cmd: '/loop-start',
+        what: 'Enters a continuous agent loop with backpressure',
+        when: 'For long autonomous tasks — replaces manual re-prompting',
+        tags: ['agents'],
+      },
+    ],
+  },
+  {
+    id: 'last30days',
+    name: 'last30days-skill',
+    tagline: 'Research any topic across social, prediction markets, and web — past 30 days',
+    color: '#fff',
+    headerBg: '#047857',
+    rowBg: '#091812',
+    border: '#14472A',
+    install: '/plugin marketplace add mvanhorn/last30days-skill\n/plugin install last30days@last30days-skill',
+    commands: [
+      {
+        cmd: '/last30days <topic>',
+        what: 'Full research run across Reddit, HN, Polymarket, X, YouTube, Bluesky',
+        when: 'When you need a current pulse on a topic — takes 2–8 min, saves to ~/Documents/Last30Days/',
+        tags: ['research'],
+      },
+      {
+        cmd: '/last30days <topic> --quick',
+        what: 'Faster research with less depth — Reddit, HN, Polymarket only',
+        when: 'Quick gut-check on a topic without waiting for the full run',
+        tags: ['research'],
+      },
+      {
+        cmd: '/last30days <topic> --days=90',
+        what: 'Extends the research window to 90 days',
+        when: 'Slower-moving topics where 30 days misses the full picture',
+        tags: ['research'],
+      },
+      {
+        cmd: '/last30days A vs B',
+        what: 'Comparative mode — side-by-side table + verdict',
+        when: 'Evaluating two tools, libraries, or approaches with real-world signal',
+        tags: ['research'],
+      },
+    ],
+  },
+  {
+    id: 'pi',
+    name: 'pi-self-learning',
+    tagline: 'Persistent git-backed memory — distilled lessons that travel across machines',
+    color: '#fff',
+    headerBg: '#9D174D',
+    rowBg: '#1A0812',
+    border: '#5C1633',
+    install: 'npm install -g @mariozechner/pi-coding-agent\npi install npm:pi-self-learning',
+    commands: [
+      {
+        cmd: '/learning-now',
+        what: 'Captures a learning from the current session into the daily memory file',
+        when: 'After solving something non-obvious or discovering a project-specific pattern',
+        tags: ['memory', 'learning'],
+      },
+      {
+        cmd: '/learning-month',
+        what: 'Synthesizes the month\'s daily learnings into a durable CORE.md summary',
+        when: 'End of month — or before a long break — to consolidate and commit',
+        tags: ['memory', 'learning'],
+      },
+    ],
+  },
+  {
+    id: 'agent-reach',
+    name: 'Agent-Reach',
+    tagline: 'Zero-config access to 17 platforms — web, social, YouTube, GitHub',
+    color: '#fff',
+    headerBg: '#334155',
+    rowBg: '#181C20',
+    border: '#2D3748',
+    install: "# Tell Claude:\n# Help me install Agent Reach:\n# https://raw.githubusercontent.com/Panniantong/agent-reach/main/docs/install.md",
+    commands: [
+      {
+        cmd: 'agent-reach doctor',
+        what: 'Shows which platforms are live and which need configuration',
+        when: 'After install, and whenever a channel starts failing',
+        tags: ['setup', 'debug'],
+      },
+      {
+        cmd: 'r.jina.ai/<url>',
+        what: 'Reads any web page as clean markdown',
+        when: 'When the agent needs to read a URL without a browser MCP',
+        tags: ['web'],
+      },
+      {
+        cmd: 'yt-dlp --write-subs <url>',
+        what: 'Downloads YouTube subtitles for agent consumption',
+        when: 'Research from video content without transcription APIs',
+        tags: ['web', 'research'],
+      },
+    ],
+  },
+  {
+    id: 'rtk',
+    name: 'RTK — Rust Token Killer',
+    tagline: '60–90% token savings by compressing shell output before it enters context',
+    color: '#fff',
+    headerBg: '#1D4ED8',
+    rowBg: '#0D1425',
+    border: '#1E3A6E',
+    install: '# macOS\nbrew install rtk\n# Linux\ncurl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh\n# Hook into Claude Code\nrtk init -g',
+    commands: [
+      {
+        cmd: 'rtk init -g',
+        what: 'Installs the global Claude Code hook that pipes all shell output through RTK',
+        when: 'Once after install — sets up automatic compression for every session',
+        tags: ['setup', 'cost'],
+      },
+      {
+        cmd: 'rtk init -g --gemini',
+        what: 'Also hooks RTK into Gemini CLI',
+        when: 'If you use Gemini CLI alongside Claude Code',
+        tags: ['setup', 'cost'],
+      },
+      {
+        cmd: 'rtk --version',
+        what: 'Confirms RTK is installed and shows the current version',
+        when: 'Verifying the install or checking for updates',
+        tags: ['setup'],
+      },
+    ],
+  },
+  {
+    id: 'jai',
+    name: 'jai — Stanford Linux Sandbox',
+    tagline: 'Copy-on-write filesystem overlay — containment for AI agents with no Docker',
+    color: '#fff',
+    headerBg: '#065F46',
+    rowBg: '#021A10',
+    border: '#064E3B',
+    install: '# Arch\nyay -S jai\n# From source\ngit clone https://github.com/stanford-scs/jai.git\ncd jai && ./autogen.sh && ./configure && make && sudo make install\nsudo systemd-sysusers && jai --init',
+    commands: [
+      {
+        cmd: 'jai claude',
+        what: 'Runs Claude Code inside a copy-on-write sandbox (casual mode)',
+        when: 'Day-to-day — any session where you want to contain file writes',
+        tags: ['isolation', 'setup'],
+      },
+      {
+        cmd: 'jai --mode strict claude',
+        what: 'Sandbox with separate UID isolation — stronger protection',
+        when: 'Before running an untrusted skill, hook, or long autonomous task',
+        tags: ['isolation'],
+      },
+      {
+        cmd: 'jai --mode bare claude',
+        what: 'Hidden home directory, medium protection',
+        when: 'Testing new hooks or skills that write to ~/.claude',
+        tags: ['isolation', 'debug'],
+      },
+      {
+        cmd: 'jai --mode casual bash',
+        what: 'Drops into a sandboxed shell to inspect what would have changed',
+        when: 'Reviewing side effects after a sandboxed Claude session',
+        tags: ['isolation', 'debug'],
+      },
+    ],
+  },
+];
+
+const allTags = [...new Set(plugins.flatMap(p => p.commands.flatMap(c => c.tags)))].sort();
+
+const tagColors: Record<string, { bg: string; text: string; border: string }> = {
+  planning:       { bg: '#1E1B4B', text: '#A5B4FC', border: '#3730A3' },
+  agents:         { bg: '#1C1917', text: '#FCD34D', border: '#78350F' },
+  memory:         { bg: '#0F172A', text: '#7DD3FC', border: '#1E3A5F' },
+  learning:       { bg: '#0D2818', text: '#6EE7B7', border: '#14532D' },
+  testing:        { bg: '#1C0A0A', text: '#FCA5A5', border: '#7F1D1D' },
+  quality:        { bg: '#1A1206', text: '#FDE68A', border: '#78350F' },
+  review:         { bg: '#1A0A2E', text: '#D8B4FE', border: '#6B21A8' },
+  research:       { bg: '#061A12', text: '#4ADE80', border: '#166534' },
+  git:            { bg: '#1A0A00', text: '#FB923C', border: '#9A3412' },
+  isolation:      { bg: '#0A1A2E', text: '#93C5FD', border: '#1E40AF' },
+  debugging:      { bg: '#1A0A0A', text: '#F87171', border: '#991B1B' },
+  ideation:       { bg: '#1A1A00', text: '#FACC15', border: '#A16207' },
+  implementation: { bg: '#001A0A', text: '#34D399', border: '#065F46' },
+  setup:          { bg: '#1A1A1A', text: '#D1D5DB', border: '#374151' },
+  cost:           { bg: '#0A1A0A', text: '#86EFAC', border: '#14532D' },
+  debug:          { bg: '#1A0808', text: '#FC8181', border: '#7F1D1D' },
+  web:            { bg: '#001018', text: '#38BDF8', border: '#0C4A6E' },
+};
+
+function tagStyle(tag: string): string {
+  const c = tagColors[tag] ?? { bg: '#1A1A1A', text: '#D1D5DB', border: '#374151' };
+  return `background:${c.bg};color:${c.text};border-color:${c.border}`;
+}
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Champion — Skills &amp; Commands Reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --font-sans: 'Inter', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --bg: #0E0D0C;
+      --surface: #161412;
+      --text: #E7E3DE;
+      --muted: #78716C;
+      --border: #2A2826;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* ── Bar ── */
+    .bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 14px;
+      flex-wrap: wrap;
+    }
+
+    .bar__back {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #D97706;
+      text-decoration: none;
+    }
+    .bar__back:hover { text-decoration: underline; }
+
+    .bar__title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-right: auto;
+    }
+
+    .bar__tags {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .tag-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 100px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.12s;
+      font-family: var(--font-sans);
+    }
+    .tag-btn:hover { color: var(--text); border-color: #555; }
+    .tag-btn.active { color: #E7E3DE; border-color: #888; background: #2A2826; }
+
+    .btn {
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: background 0.1s;
+    }
+    .btn:hover { background: var(--border); }
+
+    /* ── Layout ── */
+    .page {
+      padding: 16px;
+      columns: 3;
+      column-gap: 12px;
+    }
+
+    @media (max-width: 1100px) { .page { columns: 2; } }
+    @media (max-width: 680px)  { .page { columns: 1; } }
+
+    /* ── Plugin card ── */
+    .plugin {
+      break-inside: avoid;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid;
+    }
+
+    .plugin[data-hidden="true"] { display: none; }
+
+    .plugin__head {
+      padding: 8px 12px;
+    }
+
+    .plugin__name {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .plugin__tagline {
+      font-size: 11px;
+      opacity: 0.75;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    .plugin__install {
+      margin-top: 8px;
+      padding: 5px 8px;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.3);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      white-space: pre;
+      overflow-x: auto;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.6;
+    }
+
+    /* ── Command rows ── */
+    .cmd-list {
+      list-style: none;
+    }
+
+    .cmd {
+      border-top: 1px solid;
+      padding: 7px 12px;
+    }
+
+    .cmd[data-hidden="true"] { display: none; }
+
+    .cmd__top {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+
+    .cmd__name {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #F5F4F2;
+      flex-shrink: 0;
+    }
+
+    .cmd__tags {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .cmd__tag {
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 100px;
+      border: 1px solid;
+      text-transform: lowercase;
+      letter-spacing: 0.02em;
+    }
+
+    .cmd__what {
+      font-size: 11.5px;
+      color: #C8C3BC;
+      margin-bottom: 3px;
+    }
+
+    .cmd__when-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      margin-right: 4px;
+    }
+
+    .cmd__when {
+      font-size: 11px;
+      color: #A8A29E;
+    }
+
+    /* ── Empty state ── */
+    .empty {
+      display: none;
+      padding: 60px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      column-span: all;
+    }
+  </style>
+</head>
+<body>
+
+<div class="bar">
+  <a href="/" class="bar__back">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Home
+  </a>
+  <span class="bar__title">Skills &amp; Commands</span>
+
+  <div class="bar__tags" id="tag-filters">
+    <button class="tag-btn active" data-tag="all">all</button>
+    {allTags.map(tag => (
+      <button class="tag-btn" data-tag={tag}>{tag}</button>
+    ))}
+  </div>
+
+  <button id="clear-filter" class="btn" style="display:none">Clear filter</button>
+</div>
+
+<div class="page" id="page">
+  {plugins.map(plugin => (
+    <article
+      class="plugin"
+      data-plugin={plugin.id}
+      data-tags={plugin.commands.flatMap(c => c.tags).filter((v, i, a) => a.indexOf(v) === i).join(',')}
+      style={`border-color: ${plugin.border}; background: ${plugin.rowBg};`}
+    >
+      <div class="plugin__head" style={`background: ${plugin.headerBg};`}>
+        <div class="plugin__name">{plugin.name}</div>
+        <div class="plugin__tagline">{plugin.tagline}</div>
+        {plugin.install && (
+          <div class="plugin__install">{plugin.install}</div>
+        )}
+      </div>
+
+      <ul class="cmd-list">
+        {plugin.commands.map(cmd => (
+          <li
+            class="cmd"
+            data-tags={cmd.tags.join(',')}
+            style={`border-color: ${plugin.border};`}
+          >
+            <div class="cmd__top">
+              <span class="cmd__name">{cmd.cmd}</span>
+              <div class="cmd__tags">
+                {cmd.tags.map(tag => (
+                  <span class="cmd__tag" style={tagStyle(tag)}>{tag}</span>
+                ))}
+              </div>
+            </div>
+            <div class="cmd__what">{cmd.what}</div>
+            <div>
+              <span class="cmd__when-label">when</span>
+              <span class="cmd__when">{cmd.when}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </article>
+  ))}
+  <p class="empty" id="empty">No commands match this filter.</p>
+</div>
+
+<script>
+  const tagBtns = document.querySelectorAll<HTMLButtonElement>('.tag-btn');
+  const plugins = document.querySelectorAll<HTMLElement>('.plugin');
+  const cmds = document.querySelectorAll<HTMLElement>('.cmd');
+  const empty = document.getElementById('empty')!;
+  const clearBtn = document.getElementById('clear-filter')!;
+
+  let activeTag = 'all';
+
+  function applyFilter() {
+    if (activeTag === 'all') {
+      plugins.forEach(p => { p.dataset.hidden = 'false'; });
+      cmds.forEach(c => { c.dataset.hidden = 'false'; });
+      empty.style.display = 'none';
+      clearBtn.style.display = 'none';
+      return;
+    }
+
+    let anyVisible = false;
+
+    plugins.forEach(p => {
+      const pluginTags = (p.dataset.tags ?? '').split(',');
+      const pluginVisible = pluginTags.includes(activeTag);
+      p.dataset.hidden = pluginVisible ? 'false' : 'true';
+      if (pluginVisible) anyVisible = true;
+
+      p.querySelectorAll<HTMLElement>('.cmd').forEach(c => {
+        const cmdTags = (c.dataset.tags ?? '').split(',');
+        c.dataset.hidden = cmdTags.includes(activeTag) ? 'false' : 'true';
+      });
+    });
+
+    empty.style.display = anyVisible ? 'none' : 'block';
+    clearBtn.style.display = 'block';
+  }
+
+  tagBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeTag = btn.dataset.tag ?? 'all';
+      tagBtns.forEach(b => b.classList.toggle('active', b.dataset.tag === activeTag));
+      applyFilter();
+    });
+  });
+
+  clearBtn.addEventListener('click', () => {
+    activeTag = 'all';
+    tagBtns.forEach(b => b.classList.toggle('active', b.dataset.tag === 'all'));
+    applyFilter();
+  });
+</script>
+</body>
+</html>

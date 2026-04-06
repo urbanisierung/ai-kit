@@ -17,7 +17,7 @@
 #   Project NOMAD         → Debian/Ubuntu only, sudo required
 #   Agent-Reach           → tell Claude to install it from the install URL
 
-set -euo pipefail
+set -uo pipefail
 
 OS="$(uname -s)"
 SKIP=0
@@ -87,7 +87,7 @@ fi
 # ── pi CLI + pi-self-learning ─────────────────────────────────────────────────
 if ! command -v pi &>/dev/null; then
   if _confirm "Install pi CLI + pi-self-learning (persistent git-backed memory)?"; then
-    npm install -g @pi-labs/cli
+    npm install -g @mariozechner/pi-coding-agent
     pi install npm:pi-self-learning
     _ok "pi-self-learning installed — commands: /learning-now, /learning-month"
   else

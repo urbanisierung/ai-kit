@@ -699,7 +699,7 @@ the equivalent MCP. Not a replacement — a complement.
 | **Playwright** | Browser automation — Claude launches browsers, navigates, screenshots | Built into Claude Desktop |
 | **DeepWiki** | Access docs for any open-source repo without pulling them into context manually | deepwiki.com |
 | **Brave Search** | Web search with local/news/image results. Free tier: ~1K queries/$5/month | `npx @modelcontextprotocol/server-brave-search` |
-| **Grok (xAI)** | Web search + X/Twitter search + code execution. $175/month free if opted into data-sharing | [github.com/merterbak/Grok-MCP](https://github.com/merterbak/Grok-MCP) |
+| **Grok (xAI)** | Web search + X/Twitter search + code execution. Paid — free tier ended Dec 2024. One-time $25 signup credit; data-sharing program for $150/month (permanent opt-in, no EU/UK) | [github.com/merterbak/Grok-MCP](https://github.com/merterbak/Grok-MCP) |
 | **Storybook** | Browse, query, generate React components | [storybook.js.org](https://storybook.js.org/blog/storybook-mcp-for-react/) |
 | **Sentry** | Configurable tool groups — enable only read or read+write | [mcp.sentry.dev](https://mcp.sentry.dev/) |
 | **Cloudflare Code Mode** | Compresses entire Cloudflare API to ~1,000 tokens via typed SDK | [blog.cloudflare.com](https://blog.cloudflare.com/code-mode-mcp/) |
@@ -708,8 +708,6 @@ the equivalent MCP. Not a replacement — a complement.
 
 ### Search APIs: Brave vs. Grok
 
-Two free-tier-friendly options for giving Claude real-time web access:
-
 **Brave Search API**
 - Package: `@modelcontextprotocol/server-brave-search` (official Anthropic MCP)
 - Add key: `claude mcp add brave-search -e BRAVE_API_KEY=BSA_YOUR_KEY -- npx -y @modelcontextprotocol/server-brave-search`
@@ -717,9 +715,16 @@ Two free-tier-friendly options for giving Claude real-time web access:
 - Best for: generic web search with no platform lock-in
 
 **Grok / xAI API**
-- Sign up at [console.x.ai](https://console.x.ai) — $25 on signup + $150/month via data-sharing program = $175/month free
+- Sign up at [console.x.ai](https://console.x.ai) — **no ongoing free tier** (ended Dec 2024)
+- New accounts get a one-time $25 credit (expires in 30 days)
+- Data-sharing program: $150/month credits — but requires $5 prior spend, opt-in is permanent, and unavailable in EU/UK/Iceland/Liechtenstein/Norway
 - Adds: web search, X/Twitter-specific search, code execution via `grok-4-1-fast-reasoning`
-- Best for: anything where X/Twitter signal matters; large free tier
+- Best for: anything where X/Twitter signal matters; be aware it is now a paid service
+
+**Groq (free alternative for general inference)**
+- Sign up at [console.groq.com](https://console.groq.com) — no credit card required
+- Free tier: up to 14,400 req/day (8B model), 1,000 req/day (70B/Scout models); OpenAI-compatible API
+- Best for: fast, free LLM inference when X/Twitter access is not needed
 
 Store both keys in your `ai-kit/.env.example`:
 ```bash
@@ -1345,7 +1350,7 @@ Different models for different roles:
 - **Opus** → implementation (best reasoning, worth the cost for complex logic)
 - **Gemini** → exploratory research (1M+ token context window, cheap at scale)
 - **Sonnet** → review (fast, cost-effective, catches surface issues)
-- **Grok** → real-time web/X search tasks (large free tier)
+- **Grok** → real-time web/X search tasks (paid — free tier ended Dec 2024)
 
 > "The cumulative output is stronger than any single model working alone."
 
@@ -1680,10 +1685,16 @@ claude mcp add brave-search -e BRAVE_API_KEY=BSA_YOUR_KEY -- npx -y @modelcontex
 ```
 
 **Grok API (10 minutes):**
-Sign up at [console.x.ai](https://console.x.ai). Opt into the data-sharing program for
-$150/month of free credits. Add the MCP from
-[github.com/merterbak/Grok-MCP](https://github.com/merterbak/Grok-MCP).
+Sign up at [console.x.ai](https://console.x.ai). **No ongoing free tier** — the $25/month beta ended Dec 2024.
+New accounts receive a one-time $25 credit (30-day expiry). A data-sharing program offers $150/month credits
+but has significant strings: requires $5 prior spend, opt-in is permanent, and unavailable in EU/UK/Iceland/Liechtenstein/Norway.
+Add the MCP from [github.com/merterbak/Grok-MCP](https://github.com/merterbak/Grok-MCP).
 The same MCP server definition works for all three tools; only the config file location differs.
+
+**Groq (free alternative):**
+Sign up at [console.groq.com](https://console.groq.com) — no credit card required. Provides fast LLM inference
+(Llama 4, Llama 3.3 70B, Qwen3) via an OpenAI-compatible API with a genuine ongoing free tier.
+Does not provide X/Twitter search; use only when Grok's social media signal is not needed.
 
 **DeepWiki (5 minutes):**
 ```json

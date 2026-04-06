@@ -541,9 +541,9 @@
             },
             {
               "id": "l4-grok",
-              "text": "Sign up at console.x.ai; add Grok MCP for X/Twitter search + large free tier",
+              "text": "Sign up at console.x.ai; add Grok MCP for X/Twitter search (paid — no ongoing free tier)",
               "label": "Add Grok MCP for X/Twitter search (sign up at console.x.ai)",
-              "detail": "Opt into the data-sharing program for $175/month of free credits.",
+              "detail": "No ongoing free tier as of Dec 2024. New accounts get a one-time $25 credit (30-day expiry). A data-sharing program offers $150/month credits but requires $5 prior spend, is region-restricted (no EU/UK/Iceland/Liechtenstein/Norway), and opt-in is permanent.",
               "code": {
                 "lang": "bash",
                 "content": "# Get the MCP from github.com/merterbak/Grok-MCP\n# Add XAI_API_KEY to your .env"
@@ -561,7 +561,7 @@
               "tools": [
                 "all"
               ],
-              "why": "For anything where X/Twitter signal matters — trending libraries, community sentiment, real-time debates — Grok has unique access. The $175/month free tier makes it effectively zero cost."
+              "why": "For anything where X/Twitter signal matters — trending libraries, community sentiment, real-time debates — Grok has unique access. The free tier ($25/month beta) ended Dec 2024; it is now a paid API. If X/Twitter search is not needed, Groq (console.groq.com) is a fully free alternative with fast inference and no credit card required."
             },
             {
               "id": "l4-store-keys",
