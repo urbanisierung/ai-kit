@@ -893,6 +893,25 @@
               "why": "The savings number is usually surprising and motivating. Seeing the actual token reduction makes the tradeoff real and encourages keeping the tool active."
             },
             {
+              "id": "l6-caveman",
+              "text": "Install Caveman for output token compression: `/plugin install caveman@JuliusBrussee/caveman`",
+              "label": "Install Caveman — 65–75% output token reduction via response compression",
+              "code": {
+                "lang": "bash",
+                "content": "/plugin install caveman@JuliusBrussee/caveman\n\n# Specialized skills included:\n# /caveman-commit   — terse conventional commit messages (≤50 chars)\n# /caveman-review   — one-line PR comments with emoji indicators\n# /caveman-compress — rewrites CLAUDE.md to save ~46% input tokens per session"
+              },
+              "links": [
+                {
+                  "label": "JuliusBrussee/caveman",
+                  "url": "https://github.com/JuliusBrussee/caveman"
+                }
+              ],
+              "tools": [
+                "claude"
+              ],
+              "why": "RTK compresses shell output; Caveman compresses the agent's own responses. Multiple intensity levels (Lite, Full, Ultra) let you tune the tradeoff. Research-backed: brevity can improve accuracy by 26 percentage points while cutting output tokens 65–75%."
+            },
+            {
               "id": "l6-last30days",
               "text": "Install last30days skill — see tool-specific install in ai-champion.md",
               "label": "Install last30days skill",
@@ -1146,6 +1165,26 @@
                 "all"
               ],
               "why": "Memory that's stored but never retrieved is worthless. This prompt at the start of a relevant session is what makes past context actually influence the current one."
+            },
+            {
+              "id": "l7-hippo-memory",
+              "text": "Install Hippo Memory for biologically-inspired cross-tool memory: `npm install -g hippo-memory && hippo init`",
+              "label": "Install Hippo Memory — decay-aware, cross-tool persistent memory",
+              "detail": "Hippo implements memory decay (default 7-day half-life), retrieval strengthening (each recall extends lifespan by 2 days), and error prioritization (error-tagged memories persist 2x longer). Hybrid search combines BM25 keyword matching with optional semantic embeddings. Auto-detects your agent framework and patches CLAUDE.md, .cursorrules, or AGENTS.md on init. Distinct from mem0: Hippo is a local CLI with SQLite + markdown mirrors and no cloud dependency; mem0 is MCP-based with a managed retrieval API.",
+              "code": {
+                "lang": "bash",
+                "content": "npm install -g hippo-memory\nhippo init                              # single project\nhippo init --scan ~                     # all projects at once\n\n# Core workflow:\nhippo remember \"lesson or decision\" --tag error  # errors persist 2x longer\nhippo recall \"topic\" --budget 2000               # retrieve into context\nhippo sleep                                      # nightly consolidation"
+              },
+              "links": [
+                {
+                  "label": "kitfunso/hippo-memory",
+                  "url": "https://github.com/kitfunso/hippo-memory"
+                }
+              ],
+              "tools": [
+                "all"
+              ],
+              "why": "mem0 and pi-self-learning don't model forgetting — every memory persists equally. Hippo's decay mechanics mean the memory layer stays lean over time: stale knowledge fades, frequently-retrieved context strengthens, and error lessons are weighted higher. Useful when a growing memory corpus starts degrading recall precision."
             },
             {
               "id": "l7-copilot-gemini-memory",
